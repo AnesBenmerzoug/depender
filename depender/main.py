@@ -3,9 +3,6 @@ from typing import List
 from depender.parsers.code_parser import CodeParser
 from depender.parsers.structure_parser import StructureParser
 
-from importlib import import_module
-import_module("os")
-
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
                         ignore_unknown_options=True)
