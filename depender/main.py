@@ -1,5 +1,6 @@
 import click
 from typing import List
+from click_spinner import spinner
 from depender.parsers.code_parser import CodeParser
 from depender.parsers.structure_parser import StructureParser
 
@@ -8,7 +9,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
                         ignore_unknown_options=True)
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
+@click.group(invoke_without_command=False, context_settings=CONTEXT_SETTINGS)
 @click.version_option()
 def main():
     r"""
@@ -53,19 +54,23 @@ def dependency_graph(project_path: str, excluded_dirs: List[str],
 
     """
     # Instantiate the parser
-    parser = CodeParser(importing_module_color=importing_module_color,
-                        imported_module_color=imported_module_color,
-                        disconnected_module_color=disconnected_module_color,
-                        no_colorize_graph=no_colorize_graph)
+    parser = CodeParser()
     # Parse the project
-    graph = parser.parse_project(directory=project_path,
-                                 excluded_directories=excluded_dirs,
-                                 include_external=include_external,
-                                 follow_links=not no_follow_links)
+    click.echo("Parsing project...")
+    with spinner():
+        graph = parser.parse_project(directory=project_path,
+                                     excluded_directories=excluded_dirs,
+                                     include_external=include_external,
+                                     follow_links=not no_follow_links)
     # Layout and write to file
-    output_file = "dependency_graph.{format}".format(format=format) if not output_file \
-        else output_file + ".{format}".format(format=format)
-    graph.draw(output_file, prog=engine, format=format)
+    click.echo("Plotting graph...")
+    with spinner():
+        graph.plot_dependency_matrix(out_color=importing_module_color,
+                                     in_color=imported_module_color)
+        graph.plot_dependency_graph(out_color=importing_module_color,
+                                    in_color=imported_module_color,
+                                    dis_color=disconnected_module_color)
+    click.echo("Done")
 
 
 @main.command(name="structure", short_help="create directory structure graph")
@@ -105,14 +110,17 @@ def structure_graph(project_path: str, excluded_dirs: List[str],
                              dir_color=dir_color,
                              file_color=file_color)
     # Parse the project
-    graph = parser.parse_project(directory=project_path,
-                                 excluded_directories=excluded_dirs,
-                                 follow_links=not no_follow_links,
-                                 depth=depth)
+    click.echo("Parsing project...")
+    with spinner():
+        graph = parser.parse_project(directory=project_path,
+                                     excluded_directories=excluded_dirs,
+                                     follow_links=not no_follow_links,
+                                     depth=depth)
     # Layout and write to file
-    output_file = "directory_structure_graph.{format}".format(format=format) if not output_file \
-        else output_file + ".{format}".format(format=format)
-    graph.draw(output_file, prog=engine, format=format)
+    click.echo("Plotting graph...")
+    with spinner():
+        graph.plot_structure_graph()
+    click.echo("Done")
 
 
 if __name__ == "__main__":

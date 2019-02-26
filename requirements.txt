@@ -1,2 +1,5 @@
-pygraphviz==1.5
 click==7.0
+click-spinner==0.1.8
+bokeh==1.0.4
+Jinja2==2.10
+numpy==1.16.1

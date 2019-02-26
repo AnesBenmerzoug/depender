@@ -1,5 +1,4 @@
 from typing import List, Optional
-from depender.utilities.graph import Graph
 
 
 def hex_to_rgb(hex: str) -> List[int]:
@@ -46,6 +45,7 @@ def linear_gradient(source_color: str, sink_color: str, in_degree: int = 1, out_
     return rgb_to_hex(new_color)
 
 
+"""
 def prettify_graph(graph: Graph, source_color: Optional[str] = None, sink_color: Optional[str] = None,
                    not_connected_color: Optional[str] = None) -> None:
     if None in [source_color, sink_color, not_connected_color]:
@@ -86,3 +86,4 @@ def prettify_graph(graph: Graph, source_color: Optional[str] = None, sink_color:
             gradient.append("{color};{value}".format(color=color, value=1.0 / len(color_list)))
         edge.attr.update(color=":".join(gradient))
         # edge.attr.update(color=f"{color2};0.33:{color1};0.33")
+"""

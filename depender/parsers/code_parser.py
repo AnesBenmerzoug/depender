@@ -3,7 +3,6 @@ import ast
 import importlib
 import importlib.util
 from depender.utilities.graph import Graph
-from depender.utilities.color_utils import prettify_graph
 from collections import defaultdict
 from difflib import SequenceMatcher
 
@@ -11,20 +10,9 @@ from typing import List, Tuple
 
 
 class CodeParser:
-    def __init__(self,
-                 importing_module_color: str = "#428aff",
-                 imported_module_color: str = "#f26d90",
-                 disconnected_module_color: str = "#fcb16f",
-                 no_colorize_graph: bool = False) -> None:
-        self.graph = Graph(strict=True, splines="true", overlap=False,
-                           node_style="filled", directed=True)
+    def __init__(self) -> None:
+        self.graph = Graph()
         self.sub_graphs = defaultdict(list)
-        self.graph_dict = defaultdict(dict)
-        self.module_count = defaultdict(int)
-        self.importing_module_color = importing_module_color
-        self.imported_module_color = imported_module_color
-        self.disconnected_module_color = disconnected_module_color
-        self.no_colorize_graph = no_colorize_graph
 
     def parse_project(self, directory: str,
                       excluded_directories: List[str],
@@ -102,11 +90,6 @@ class CodeParser:
 
         # Add clusters
         self.graph.add_clusters(self.sub_graphs)
-        if not self.no_colorize_graph:
-            prettify_graph(graph=self.graph,
-                           source_color=self.importing_module_color,
-                           sink_color=self.imported_module_color,
-                           not_connected_color=self.disconnected_module_color)
         return self.graph
 
     def parse_first_form_import(self, import_node: ast.AST, package_name: str,
@@ -144,7 +127,7 @@ class CodeParser:
         else:
             imported_module_is_file = False
             for imported_module in import_node.names:
-                is_file, name, label = self.module_is_file(imported_module.name, current_dir)
+                is_file, name, label = self.module_is_file(imported_from_module + "." + imported_module.name, current_dir)
                 if is_file:
                     imported_module_is_file = True
                     self.graph.add_node(name, label=label)

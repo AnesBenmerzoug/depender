@@ -6,9 +6,7 @@ from typing import List, Optional
 
 class StructureParser:
     def __init__(self, root_dir_color: str, dir_color: str, file_color: str) -> None:
-        self.graph = Graph(strict=True, splines="polyline", overlap=False,
-                           node_shape="folder", node_style="filled",
-                           rankdir="TB", directed=False)
+        self.graph = Graph()
         self.root_dir_color = root_dir_color
         self.dir_color = dir_color
         self.file_color = file_color
@@ -19,9 +17,9 @@ class StructureParser:
         # Remove / if it is at the end of the given directory path
         if directory.endswith(os.path.sep):
             directory = directory[:-1]
-        if directory == ".":
-            directory = os.path.abspath(directory)
-        root_separator_count = directory.count(os.path.sep)
+        directory = os.path.abspath(directory)
+        root_directory = os.path.dirname(directory)
+        root_depth = directory.count(os.path.sep)
         for root, dirs, files in os.walk(directory, followlinks=follow_links):
             # Check to see if there are user specified directories that should be skipped
             skip = False
@@ -41,65 +39,52 @@ class StructureParser:
             if "/." in root:
                 continue
 
+            current_depth = root.count(os.path.sep) - root_depth
+
             # Don't go deeper than "depth" if it has a non-negative value
             if depth is not None and depth >= 0:
-                current_separator_count = root.count(os.path.sep)
-                if root_separator_count + depth < current_separator_count:
+                if current_depth > depth:
                     continue
 
-            # Get the label for the current root node
-            if os.path.sep in root:
-                root_label = root.split(os.path.sep)[-1]
-            else:
-                root_label = root
+            if not self.graph.node_exists(root):
+                self.graph.add_node(name=root, label=os.path.basename(root),
+                                    type="directory", color=self.root_dir_color, depth=current_depth)
+                self.graph.set_node_property(root, "children_count", 0)
 
-            try:
-                self.graph.get_node(name=root)
-            except KeyError:
-                self.graph.add_node(name=root, label=root_label, color=self.root_dir_color)
-
-            point_after_root = root + "_dot"
-            self.graph.add_node(point_after_root, shape="point", width="0", height="0")
-            self.graph.add_edge(root, point_after_root, weight="1000")
-
-            points = [point_after_root]
-            next_elements = []
             previous_point = None
 
             for i, element in enumerate(dirs + files):
                 if "__pycache__" in element:
-                    continue
-                if element.startswith("."):
                     continue
                 if ".pyc" in element:
                     continue
 
                 # Add the actual node to the graph
                 full_path = os.path.join(root, element)
-                next_elements.append(full_path)
 
                 if os.path.isfile(full_path):
-                    self.graph.add_node(full_path, label=element, shape="note", color=self.file_color)
+                    self.graph.add_node(full_path, label=os.path.basename(full_path),
+                                        type="file", color=self.file_color, depth=current_depth + 1,
+                                        children_count=0)
                 else:
-                    self.graph.add_node(full_path, label=element, color=self.dir_color)
+                    self.graph.add_node(full_path, label=os.path.basename(full_path),
+                                        type="directory", color=self.dir_color, depth=current_depth + 1,
+                                        children_count=0)
 
+                # Add an intermediate point to the graph to help with the plotting
+                current_point = root[len(root_directory):] + "--point--" + full_path[len(root_directory):]
+                self.graph.add_node(current_point, label="",
+                                    type="point", color=None, depth=current_depth + 0.5)
+
+                # Connect the current root to the current file/directory through the point(s)
                 if previous_point is None:
-                    connecting_point = point_after_root
+                    self.graph.add_edge(root, current_point)
+                    self.graph.add_edge(current_point, full_path)
                 else:
-                    connecting_point = full_path + "_dot_2"
-                    self.graph.add_node(connecting_point, shape="point", width="0", height="0")
-                    points.append(connecting_point)
-
-                previous_point = connecting_point
-
-            # Add the connecting points to the graph and connect them together
-            self.graph.add_subgraph(points, rank="same")
-            for i in range(len(points)-1):
-                self.graph.add_edge(points[i], points[i+1], weight="60")
-            # Add the elements of the next level to the graph and connect each one of them
-            # to the corresponding point
-            self.graph.add_subgraph(next_elements, rank="same")
-            for i in range(len(next_elements)):
-                self.graph.add_edge(points[i], next_elements[i], weight="1000")
+                    self.graph.add_edge(previous_point, current_point)
+                    self.graph.add_edge(current_point, full_path)
+                self.graph.set_node_property(root, "children_count",
+                                             self.graph.get_node_property(root, "children_count") + 1)
+                previous_point = current_point
 
         return self.graph
