@@ -9,8 +9,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
                         ignore_unknown_options=True)
 
 
-@click.command()
-@click.version_option()
+@click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument("project-path", nargs=1, type=click.Path(exists=True, file_okay=False, resolve_path=False))
 @click.argument("excluded-dirs", nargs=-1, type=click.Path(exists=False, file_okay=False, resolve_path=False))
 @click.option("-o", "--output-dir", type=click.Path(exists=False, dir_okay=True, resolve_path=True),
@@ -28,11 +27,12 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
 @click.option("--disconnected-module-color", default="#FCB16F", type=click.STRING,
               help="Color of the modules that are neither imported nor import other modules")
 @click.option("--root-dir-color", type=click.STRING, default="#377FB4",
-              help="Color of the root directory")
+              help="Color of a root directory node")
 @click.option("--dir-color", type=click.STRING, default="#82CBBA",
-              help="Color of non-root directories")
+              help="Color of a non-root directory node")
 @click.option("--file-color", type=click.STRING, default="#ECF7B3",
-              help="Color of files")
+              help="Color of a file node")
+@click.version_option()
 def main(project_path: str, excluded_dirs: List[str], output_dir: str,
          include_external: bool, no_follow_links: bool, depth: int,
          importing_module_color: str, imported_module_color: str,
