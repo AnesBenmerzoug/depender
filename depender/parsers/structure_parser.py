@@ -5,11 +5,8 @@ from typing import List, Optional
 
 
 class StructureParser:
-    def __init__(self, root_dir_color: str, dir_color: str, file_color: str) -> None:
+    def __init__(self) -> None:
         self.graph = Graph()
-        self.root_dir_color = root_dir_color
-        self.dir_color = dir_color
-        self.file_color = file_color
 
     def parse_project(self, directory: str,
                       excluded_directories: List[str],
@@ -48,7 +45,7 @@ class StructureParser:
 
             if not self.graph.node_exists(root):
                 self.graph.add_node(name=root, label=os.path.basename(root),
-                                    type="directory", color=self.root_dir_color, depth=current_depth)
+                                    type="root", depth=current_depth)
                 self.graph.set_node_property(root, "children_count", 0)
 
             previous_point = None
@@ -64,11 +61,11 @@ class StructureParser:
 
                 if os.path.isfile(full_path):
                     self.graph.add_node(full_path, label=os.path.basename(full_path),
-                                        type="file", color=self.file_color, depth=current_depth + 1,
+                                        type="file", depth=current_depth + 1,
                                         children_count=0)
                 else:
                     self.graph.add_node(full_path, label=os.path.basename(full_path),
-                                        type="directory", color=self.dir_color, depth=current_depth + 1,
+                                        type="directory", depth=current_depth + 1,
                                         children_count=0)
 
                 # Add an intermediate point to the graph to help with the plotting

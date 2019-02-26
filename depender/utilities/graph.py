@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import networkx as nx
 from functools import partial
@@ -102,7 +103,7 @@ class Graph:
         plot.min_border = 80
         return plot
 
-    def plot_dependency_graph(self, in_color: str, out_color: str, dis_color: str):
+    def plot_dependency_graph(self, in_color: str, out_color: str, dis_color: str, output_dir: str) -> None:
         # Create the Networkx directional graph instance from the edge dictionary
         graph = nx.DiGraph(self.edge_dict)
         # Assign names and colors to nodes depending on in and out degrees
@@ -146,12 +147,16 @@ class Graph:
 
         plot.renderers.append(graph_renderer)
 
+        # Get the script and div elements for the template
         script, div = components(plot)
 
-        with open("html/dependency_graph.html", "w") as f:
+        # Create the output directory, if it does not exist already, and store the generated html file
+        os.makedirs(output_dir, exist_ok=True)
+
+        with open(os.path.join(output_dir, "dependency_graph.html"), "w") as f:
             f.write(self.template.render(script=script, div=div))
 
-    def plot_dependency_matrix(self, in_color: str, out_color: str):
+    def plot_dependency_matrix(self, in_color: str, out_color: str, output_dir: str) -> None:
         for index, (node, _) in enumerate(self.nodes_iter()):
             self.node_dict[node]["index"] = index
         size = 0.9
@@ -203,12 +208,16 @@ class Graph:
                           line_color="#8b8a8c", fill_color="colors")
         plot.add_glyph(data, rectangles)
 
+        # Get the script and div elements for the template
         script, div = components(plot)
 
-        with open("html/dependency_matrix.html", "w") as f:
+        # Create the output directory, if it does not exist already, and store the generated html file
+        os.makedirs(output_dir, exist_ok=True)
+
+        with open(os.path.join(output_dir, "dependency_matrix.html"), "w") as f:
             f.write(self.template.render(script=script, div=div))
 
-    def plot_structure_graph(self):
+    def plot_structure_graph(self, root_dir_color: str, dir_color: str, file_color: str, output_dir: str) -> None:
         width = 1.0
         height = 0.4
         step_x = 2 * width
@@ -252,9 +261,14 @@ class Graph:
                 node_data["width"].append(0.0 if node["type"] == "point" else width)
                 node_data["height"].append(0.0 if node["type"] == "point" else height)
                 node_data["name"].append(node["label"])
-                node_data["color"].append(node["color"])
                 node_data["type"].append(node["type"])
                 node_data["label"].append(node["label"])
+                if node["type"] == "root":
+                    node_data["color"].append(root_dir_color)
+                elif node["type"] == "directory":
+                    node_data["color"].append(dir_color)
+                else:
+                    node_data["color"].append(file_color)
 
         edge_data = dict(xs=list(), ys=list())
 
@@ -266,7 +280,7 @@ class Graph:
                                         self.node_dict[edge_end]["y"]])
 
         # Get a figure
-        plot = self.get_figure(width=1600)
+        plot = self.get_figure(height=600, width=1600)
         # plot.add_tools(HoverTool(tooltips=[("Type", "@type"), ("Path", "@name")]))
         lines = MultiLine(xs="xs", ys="ys", line_color="#8b8a8c")
         rectangles = Rect(x="center_x", y="center_y", width="width", height="height",
@@ -286,5 +300,8 @@ class Graph:
         # Get the script and div elements for the template
         script, div = components(plot)
 
-        with open("html/structure_graph.html", "w") as f:
+        # Create the output directory, if it does not exist already, and store the generated html file
+        os.makedirs(output_dir, exist_ok=True)
+
+        with open(os.path.join(output_dir, "structure_graph.html"), "w") as f:
             f.write(self.template.render(script=script, div=div))
