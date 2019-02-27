@@ -1,7 +1,7 @@
 import os
 from depender.utilities.graph import Graph
 
-from typing import List, Optional
+from typing import List
 
 
 class StructureParser:
@@ -10,7 +10,7 @@ class StructureParser:
 
     def parse_project(self, directory: str,
                       excluded_directories: List[str],
-                      follow_links: bool = True, depth: Optional[int] = None) -> Graph:
+                      follow_links: bool = True, depth: int = 5) -> Graph:
         # Remove / if it is at the end of the given directory path
         if directory.endswith(os.path.sep):
             directory = directory[:-1]
@@ -39,9 +39,8 @@ class StructureParser:
             current_depth = root.count(os.path.sep) - root_depth
 
             # Don't go deeper than "depth" if it has a non-negative value
-            if depth is not None and depth >= 0:
-                if current_depth > depth:
-                    continue
+            if current_depth > depth >= 0:
+                break
 
             if not self.graph.node_exists(root):
                 self.graph.add_node(name=root, label=os.path.basename(root),

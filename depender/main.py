@@ -13,25 +13,25 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
 @click.argument("project-path", nargs=1, type=click.Path(exists=True, file_okay=False, resolve_path=False))
 @click.argument("excluded-dirs", nargs=-1, type=click.Path(exists=False, file_okay=False, resolve_path=False))
 @click.option("-o", "--output-dir", type=click.Path(exists=False, dir_okay=True, resolve_path=True),
-              default="html", help="Path to the output directory")
+              default="html",  show_default=True, help="Output directory")
 @click.option("--include-external", type=click.BOOL, default=False, is_flag=True,
-              help="When set, external packages are included in the graphs")
+              show_default=True, help="When set, external packages are included in the graphs")
 @click.option("--no-follow-links", type=click.BOOL, default=False, is_flag=True,
-              help="When set the script visits directories pointed to by symlinks")
+              show_default=True, help="When set the script visits directories pointed to by symlinks")
 @click.option("--depth", type=click.INT, default=5,
-              help="Depth of the directory recursion")
+              show_default=True, help="Depth of the directory recursion")
 @click.option("--importing-module-color", type=click.STRING, default="#428AFF",
-              help="Color of the modules that only import other modules")
+              show_default=True, help="Color of the modules that only import other modules")
 @click.option("--imported-module-color", type=click.STRING, default="#F26D90",
-              help="Color of the modules that are only imported by other modules")
+              show_default=True, help="Color of the modules that are only imported by other modules")
 @click.option("--disconnected-module-color", default="#FCB16F", type=click.STRING,
-              help="Color of the modules that are neither imported nor import other modules")
+              show_default=True, help="Color of the modules that are neither imported nor import other modules")
 @click.option("--root-dir-color", type=click.STRING, default="#377FB4",
-              help="Color of a root directory node")
+              show_default=True, help="Color of a root directory node")
 @click.option("--dir-color", type=click.STRING, default="#82CBBA",
-              help="Color of a non-root directory node")
+              show_default=True, help="Color of a non-root directory node")
 @click.option("--file-color", type=click.STRING, default="#ECF7B3",
-              help="Color of a file node")
+              show_default=True, help="Color of a file node")
 @click.version_option()
 def main(project_path: str, excluded_dirs: List[str], output_dir: str,
          include_external: bool, no_follow_links: bool, depth: int,
@@ -57,7 +57,8 @@ def main(project_path: str, excluded_dirs: List[str], output_dir: str,
         code_graph = code_parser.parse_project(directory=project_path,
                                                excluded_directories=excluded_dirs,
                                                include_external=include_external,
-                                               follow_links=not no_follow_links)
+                                               follow_links=not no_follow_links,
+                                               depth=depth)
         structure_graph = structure_parser.parse_project(directory=project_path,
                                                          excluded_directories=excluded_dirs,
                                                          follow_links=not no_follow_links,
