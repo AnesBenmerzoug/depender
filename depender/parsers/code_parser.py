@@ -2,7 +2,7 @@ import os
 import ast
 import importlib
 import importlib.util
-from depender.utilities.graph import Graph
+from depender.graph.graph import Graph
 from collections import defaultdict
 
 from typing import List

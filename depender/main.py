@@ -3,6 +3,7 @@ from typing import List
 from click_spinner import spinner
 from depender.parsers.code_parser import CodeParser
 from depender.parsers.structure_parser import StructureParser
+from depender.graph.render import GraphRenderer
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
@@ -51,6 +52,14 @@ def main(project_path: str, excluded_dirs: List[str], output_dir: str,
     # Instantiate the parsers
     code_parser = CodeParser()
     structure_parser = StructureParser()
+    # Instantiate the Graph renderer
+    graph_renderer = GraphRenderer(out_color=importing_module_color,
+                                   in_color=imported_module_color,
+                                   dis_color=disconnected_module_color,
+                                   root_dir_color=root_dir_color,
+                                   dir_color=dir_color,
+                                   file_color=file_color,
+                                   output_dir=output_dir)
     # Parse the project
     click.echo("Parsing project...")
     with spinner():
@@ -63,20 +72,13 @@ def main(project_path: str, excluded_dirs: List[str], output_dir: str,
                                                          excluded_directories=excluded_dirs,
                                                          follow_links=not no_follow_links,
                                                          depth=depth)
+
     # Layout and write to file
     click.echo("Plotting graphs...")
     with spinner():
-        code_graph.plot_dependency_matrix(out_color=importing_module_color,
-                                          in_color=imported_module_color,
-                                          output_dir=output_dir)
-        code_graph.plot_dependency_graph(out_color=importing_module_color,
-                                         in_color=imported_module_color,
-                                         dis_color=disconnected_module_color,
-                                         output_dir=output_dir)
-        structure_graph.plot_structure_graph(root_dir_color=root_dir_color,
-                                             dir_color=dir_color,
-                                             file_color=file_color,
-                                             output_dir=output_dir)
+        graph_renderer.plot_dependency_matrix(graph=code_graph)
+        graph_renderer.plot_dependency_graph(graph=code_graph)
+        graph_renderer.plot_structure_graph(graph=structure_graph)
     click.echo("Done")
 
 

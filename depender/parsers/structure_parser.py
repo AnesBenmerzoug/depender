@@ -1,5 +1,5 @@
 import os
-from depender.utilities.graph import Graph
+from depender.graph.graph import Graph
 
 from typing import List
 
@@ -15,7 +15,6 @@ class StructureParser:
         if directory.endswith(os.path.sep):
             directory = directory[:-1]
         directory = os.path.abspath(directory)
-        root_directory = os.path.dirname(directory)
         root_depth = directory.count(os.path.sep)
         for root, dirs, files in os.walk(directory, followlinks=follow_links):
             # Check to see if there are user specified directories that should be skipped
@@ -43,11 +42,7 @@ class StructureParser:
                 break
 
             if not self.graph.node_exists(root):
-                self.graph.add_node(name=root, label=os.path.basename(root),
-                                    type="root", depth=current_depth)
-                self.graph.set_node_property(root, "children_count", 0)
-
-            previous_point = None
+                self.graph.add_node(name=root, label=os.path.basename(root), type="root")
 
             for i, element in enumerate(dirs + files):
                 if "__pycache__" in element:
@@ -59,28 +54,11 @@ class StructureParser:
                 full_path = os.path.join(root, element)
 
                 if os.path.isfile(full_path):
-                    self.graph.add_node(full_path, label=os.path.basename(full_path),
-                                        type="file", depth=current_depth + 1,
-                                        children_count=0)
+                    self.graph.add_node(full_path, label=os.path.basename(full_path), type="file")
                 else:
-                    self.graph.add_node(full_path, label=os.path.basename(full_path),
-                                        type="directory", depth=current_depth + 1,
-                                        children_count=0)
+                    self.graph.add_node(full_path, label=os.path.basename(full_path), type="directory")
 
-                # Add an intermediate point to the graph to help with the plotting
-                current_point = root[len(root_directory):] + "--point--" + full_path[len(root_directory):]
-                self.graph.add_node(current_point, label="",
-                                    type="point", color=None, depth=current_depth + 0.5)
-
-                # Connect the current root to the current file/directory through the point(s)
-                if previous_point is None:
-                    self.graph.add_edge(root, current_point)
-                    self.graph.add_edge(current_point, full_path)
-                else:
-                    self.graph.add_edge(previous_point, current_point)
-                    self.graph.add_edge(current_point, full_path)
-                self.graph.set_node_property(root, "children_count",
-                                             self.graph.get_node_property(root, "children_count") + 1)
-                previous_point = current_point
+                # Connect the current root to the current file/directory
+                self.graph.add_edge(root, full_path)
 
         return self.graph
