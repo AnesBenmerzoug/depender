@@ -166,12 +166,12 @@ class GraphRenderer:
         self.render_graph(plot, self.output_dir, "dependency_matrix")
 
     def plot_structure_graph(self, graph: Graph) -> None:
-        layout_structure_graph(graph)
-
-        width = 1.0
-        height = 0.4
-        step_x = 2 * width
+        width = 0.3
+        height = 0.2
+        step_x = 3 * width
         step_y = 2.5 * height
+
+        layout_structure_graph(graph, step_x, step_y)
 
         node_data = dict(text_x=list(),
                          text_y=list(),
@@ -189,8 +189,8 @@ class GraphRenderer:
             node_data["text_y"].append(node.y)
             node_data["center_x"].append(node.x)
             node_data["center_y"].append(node.y)
-            node_data["width"].append(0.0 if node.type == "point" else width)
-            node_data["height"].append(0.0 if node.type == "point" else height)
+            node_data["width"].append(width * len(node.label) * 0.18)
+            node_data["height"].append(height)
             node_data["name"].append(node.label)
             node_data["type"].append(node.type)
             node_data["label"].append(node.label)
@@ -225,9 +225,9 @@ class GraphRenderer:
         plot.add_glyph(edge_data, lines)
 
         # Plot the nodes on the figure
-        #node_data = ColumnDataSource(node_data)
-        #plot.add_glyph(node_data, rectangles)
-        #plot.add_glyph(node_data, text)
+        node_data = ColumnDataSource(node_data)
+        plot.add_glyph(node_data, rectangles)
+        plot.add_glyph(node_data, text)
 
         # Render the graph
         self.render_graph(plot, self.output_dir, "structure_graph")
