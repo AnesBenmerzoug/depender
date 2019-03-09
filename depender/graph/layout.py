@@ -4,7 +4,7 @@ from typing import Union
 
 def layout_structure_graph(graph: Graph, step_x: Union[int, float] = 1, step_y: Union[int, float] = 1.0) -> None:
     r"""
-    Function used to layout the structure graph using Buchheim's algorithm.
+    Layout the structure graph using Buchheim's algorithm.
 
     Args:
         graph: Graph object that represents the structure graph
@@ -103,17 +103,27 @@ def apportion(node: Node, default_ancestor: Node, distance: Union[int, float] = 
             sir += v_inner_right.modifier
             sol += v_outer_left.modifier
             sor += v_outer_right.modifier
-        if v_inner_left.right_sibling and not v_outer_right.right_sibling:
-            v_outer_right.thread = v_inner_left.right_sibling
+        if next_right(v_inner_left) and not next_right(v_outer_right):
+            v_outer_right.thread = next_right(v_inner_left)
             v_outer_right.modifier += sil - sor
-        elif v_inner_right.left_sibling and not v_outer_left.left_sibling:
-            v_outer_left.thread = v_inner_right.left_sibling
+        elif next_left(v_inner_right) and not next_left(v_outer_left):
+            v_outer_left.thread = next_left(v_inner_right)
             v_outer_left.modifier += sir - sol
         default_ancestor = node
     return default_ancestor
 
 
 def next_left(node: Node) -> Node:
+    r"""
+    Traverse the left contour of the subtree rooted at node
+
+    Args:
+        node: Node from which the next node in the left contour will be taken
+
+    Returns:
+        Next node in the left contour
+
+    """
     if node.children:
         return node.children[0]
     else:
@@ -121,6 +131,16 @@ def next_left(node: Node) -> Node:
 
 
 def next_right(node: Node) -> Node:
+    r"""
+    Traverse the right contour of the subtree rooted at node
+
+    Args:
+        node: Node from which the next node in the right contour will be taken
+
+    Returns:
+        Next node in the right contour
+
+    """
     if node.children:
         return node.children[-1]
     else:
@@ -145,9 +165,21 @@ def execute_shifts(node: Node) -> None:
         shift += child.shift + change
 
 
-def ancestor(v_inner_left: Node, node: Node, default_ancestor: Node) -> Node:
-    if v_inner_left.ancestor in node.parent.children:
-        return v_inner_left.ancestor
+def ancestor(node_1: Node, node_2: Node, default_ancestor: Node) -> Node:
+    r"""
+    Get the greatest uncommon ancestor between node_1 and node_2 if found, otherwise return the default ancestor
+
+    Args:
+        node_1: First node
+        node_2: Second node
+        default_ancestor: Default ancestor to return in case an ancestor is not found
+
+    Returns:
+        Greatest uncommon ancestor or default ancestor
+        
+    """
+    if node_1.ancestor in node_2.parent.children:
+        return node_1.ancestor
     else:
         return default_ancestor
 

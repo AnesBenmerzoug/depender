@@ -189,7 +189,7 @@ class GraphRenderer:
             node_data["text_y"].append(node.y)
             node_data["center_x"].append(node.x)
             node_data["center_y"].append(node.y)
-            node_data["width"].append(width * len(node.label) * 0.18)
+            node_data["width"].append(width)
             node_data["height"].append(height)
             node_data["name"].append(node.label)
             node_data["type"].append(node.type)

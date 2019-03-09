@@ -24,7 +24,6 @@ class Node:
         self.ancestor = kwargs.get("ancestor", name)
         self.leftmost_sibling = kwargs.get("leftmost_sibling", None)
         self.left_sibling = kwargs.get("left_sibling", None)
-        self.right_sibling = kwargs.get("right_sibling", None)
 
     def get_property(self, property: str) -> Optional[Any]:
         try:
@@ -55,7 +54,7 @@ class Graph:
             self.add_node(sink)
         # Create the edge
         self.edges[source][sink] = kwargs
-        #
+        # Add properties to both nodes
         self.nodes[source].children.append(self.nodes[sink])
         self.nodes[sink].parent = self.nodes[source]
         self.nodes[sink].ancestor = self.nodes[sink]
@@ -64,7 +63,6 @@ class Graph:
         if len(self.edges[source].keys()) > 1:
             self.nodes[sink].leftmost_sibling = self.nodes[next(iter(self.edges[source].keys()))]
             self.nodes[sink].left_sibling = self.nodes[list(self.edges[source].keys())[-2]]
-            self.nodes[list(self.edges[source].keys())[-2]].right_sibling = self.nodes[sink]
 
     def get_node(self, node: str) -> Node:
         return self.nodes[node]
