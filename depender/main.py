@@ -76,9 +76,9 @@ def main(project_path: str, excluded_dirs: List[str], output_dir: str,
     # Layout and write to file
     click.echo("Plotting graphs...")
     with spinner():
-        graph_renderer.plot_dependency_matrix(graph=code_graph)
-        graph_renderer.plot_dependency_graph(graph=code_graph)
-        graph_renderer.plot_structure_graph(graph=structure_graph)
+        graph_renderer.render_dependency_matrix(graph=code_graph)
+        graph_renderer.render_dependency_graph(graph=code_graph)
+        graph_renderer.render_structure_graph(graph=structure_graph)
     click.echo("Done")
 
 
