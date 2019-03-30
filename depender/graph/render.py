@@ -10,6 +10,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models.glyphs import Rect, MultiLine, Text
 from depender.utilities.color import linear_gradient
 from depender.graph.layout import layout_structure_graph
+from bokeh.models.callbacks import CustomJS
 from bokeh.palettes import Spectral4
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -38,6 +39,8 @@ class GraphRenderer:
                       match_aspect=True,
                       toolbar_location="left",
                       tools=tools,
+                      active_scroll="wheel_zoom",
+                      active_drag="pan",
                       **kwargs)
         plot.xaxis.major_tick_line_color = None  # turn off x-axis major ticks
         plot.xaxis.minor_tick_line_color = None  # turn off x-axis minor ticks
@@ -63,7 +66,7 @@ class GraphRenderer:
         with open(os.path.join(output_dir, f"{output_name}.html"), "w") as f:
             f.write(self.template.render(script=script, div=div))
 
-    def plot_dependency_graph(self, graph: Graph) -> None:
+    def render_dependency_graph(self, graph: Graph) -> None:
         # Create the Networkx directional graph instance from the edge dictionary
         nx_graph = nx.DiGraph(graph.edges)
         # Assign names and colors to nodes depending on in and out degrees
@@ -112,7 +115,7 @@ class GraphRenderer:
         # Render the graph
         self.render_graph(plot, self.output_dir, "dependency_graph")
 
-    def plot_dependency_matrix(self, graph: Graph) -> None:
+    def render_dependency_matrix(self, graph: Graph) -> None:
         # Set up the figure
         node_names = list(reversed(graph.get_all_nodes()))
         node_count = graph.node_count()
@@ -165,45 +168,37 @@ class GraphRenderer:
         # Render the graph
         self.render_graph(plot, self.output_dir, "dependency_matrix")
 
-    def plot_structure_graph(self, graph: Graph) -> None:
-        width = 0.3
-        height = 0.2
-        step_x = 3 * width
-        step_y = 2.5 * height
+    def render_structure_graph(self, graph: Graph,
+                               base_width: float = 0.3,
+                               base_height: float = 0.2,
+                               base_font_size: float = 30) -> None:
+        # Layout the node's of the structure to obtain a hierarchical structure
+        step_x = base_width * base_font_size / 60
+        step_y = base_height * base_font_size * 3 / 10
 
         layout_structure_graph(graph, step_x, step_y)
 
-        node_data = dict(text_x=list(),
-                         text_y=list(),
-                         center_x=list(),
-                         center_y=list(),
-                         width=list(),
-                         height=list(),
-                         color=list(),
-                         name=list(),
-                         type=list(),
-                         label=list())
-
+        # Iterate over the nodes of the graph to collect data
+        node_data = defaultdict(list)
         for node in graph.nodes_iter():
-            node_data["text_x"].append(node.x)
-            node_data["text_y"].append(node.y)
             node_data["center_x"].append(node.x)
             node_data["center_y"].append(node.y)
-            node_data["width"].append(width)
-            node_data["height"].append(height)
+            node_data["width"].append(node.width)
+            node_data["height"].append(node.height)
             node_data["name"].append(node.label)
             node_data["type"].append(node.type)
             node_data["label"].append(node.label)
+            node_data["font_size"].append(base_font_size)
 
-            if node.type == "root":
-                node_data["color"].append(self.root_dir_color)
-            elif node.type == "directory":
-                node_data["color"].append(self.dir_color)
-            else:
-                node_data["color"].append(self.file_color)
+            color = self.root_dir_color if node.type == "root" \
+                else self.dir_color if node.type == "directory" \
+                else self.file_color
+            node_data["color"].append(color)
 
-        edge_data = dict(xs=list(), ys=list())
+        node_data = ColumnDataSource(node_data)
 
+        # Iterate over the edges of the graph to collect data
+        edge_data = defaultdict(list)
         for edge_begin, edge_ends in graph.edges_iter():
             for edge_end in edge_ends.keys():
                 edge_data["xs"].append([graph.get_node(edge_begin).x,
@@ -211,23 +206,33 @@ class GraphRenderer:
                 edge_data["ys"].append([graph.get_node(edge_begin).y,
                                         graph.get_node(edge_end).y])
 
+        edge_data = ColumnDataSource(edge_data)
+
         # Get a figure
         plot = self.get_figure(height=600, width=1600)
         # plot.add_tools(HoverTool(tooltips=[("Type", "@type"), ("Path", "@name")]))
         lines = MultiLine(xs="xs", ys="ys", line_color="#8b8a8c")
         rectangles = Rect(x="center_x", y="center_y", width="width", height="height",
                           line_color="#8b8a8c", fill_color="color")
-        text = Text(x="text_x", y="text_y", text="label", text_font_size="10pt",
+        text = Text(x="center_x", y="center_y", text="label", text_font_size="font_size",
                     text_baseline="middle", text_align="center")
-
+        text_zoom_callback = CustomJS(args=dict(source=node_data, base_size=base_font_size), code="""
+            var length = source.data.font_size.length;
+            var start = this.start;
+            var end = this.end;
+            var factor = 7 / (this.end - this.start);
+            for(var i = 0; i < length; i++) {
+                let font_string_length = source.data.font_size[i].length;
+                let font_size = base_size * factor;
+                source.data.font_size[i] = font_size + "pt";
+            }
+            source.change.emit();
+        """)
+        plot.x_range.callback = text_zoom_callback
         # Plot the lines connecting the nodes
-        edge_data = ColumnDataSource(edge_data)
         plot.add_glyph(edge_data, lines)
-
         # Plot the nodes on the figure
-        node_data = ColumnDataSource(node_data)
         plot.add_glyph(node_data, rectangles)
         plot.add_glyph(node_data, text)
-
         # Render the graph
         self.render_graph(plot, self.output_dir, "structure_graph")
