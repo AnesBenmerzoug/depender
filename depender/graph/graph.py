@@ -4,16 +4,18 @@ from typing import Any, List, Iterable, Union, Tuple, Optional
 
 
 class Node:
-    NodeProperties = ["name", "label", "x", "y", "index", "change",
+    NodeProperties = ["name", "label", "x", "y", "width", "height", "index", "change",
                       "shift", "modifier", "thread", "parent", "ancestor",
                       "leftmost_sibling", "left_sibling", "right_sibling"]
 
     def __init__(self, name: str, **kwargs: Optional[Any]) -> None:
         self.name = name
-        self.label = kwargs.get("label", name)
+        self.label = kwargs.get("label", "")
         self.type = kwargs.get("type", None)
         self.x = kwargs.get("x", 0)
         self.y = kwargs.get("y", 0)
+        self.width = kwargs.get("width", 0)
+        self.height = kwargs.get("height", 0)
         self.index = kwargs.get("index", 1)
         self.change = kwargs.get("change", 0)
         self.shift = kwargs.get("shift", 0)
@@ -47,7 +49,7 @@ class Graph:
         self.nodes[name] = Node(name, **kwargs)
 
     def add_edge(self, source: str, sink: str, **kwargs) -> None:
-        # Create the nodes if the do not exist yet
+        # Create the nodes if they do not exist yet
         if not self.node_exists(source):
             self.add_node(source)
         if not self.node_exists(sink):
