@@ -46,7 +46,8 @@ class Graph:
         self.edges = defaultdict(partial(defaultdict, dict))
 
     def add_node(self, name: str, **kwargs: Union[int, str]) -> None:
-        self.nodes[name] = Node(name, **kwargs)
+        if name not in self.nodes:
+            self.nodes[name] = Node(name, **kwargs)
 
     def add_edge(self, source: str, sink: str, **kwargs) -> None:
         # Create the nodes if they do not exist yet
@@ -65,6 +66,9 @@ class Graph:
         if len(self.edges[source].keys()) > 1:
             self.nodes[sink].leftmost_sibling = self.nodes[next(iter(self.edges[source].keys()))]
             self.nodes[sink].left_sibling = self.nodes[list(self.edges[source].keys())[-2]]
+
+    def get_root_node(self) -> Node:
+        return next(iter(self.nodes.values()))
 
     def get_node(self, node: str) -> Node:
         return self.nodes[node]

@@ -17,7 +17,7 @@ def layout_structure_graph(graph: Graph,
             and the distance between levels in the graph
 
     """
-    root_node = graph.get_node(next(iter(graph.edges.keys())))
+    root_node = graph.get_root_node()
     first_walk(root_node, base_distance=base_distance_x)
     second_walk(root_node, -root_node.x, base_distance=base_distance_y)
 
@@ -43,7 +43,7 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
         if current_node.leftmost_sibling:
             current_node.x = current_node.left_sibling.x \
                 + (current_node.left_sibling.width + current_node.width) / 2 \
-                + 2 * base_distance
+                + base_distance
         else:
             current_node.x = 0
     else:
@@ -66,7 +66,7 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
         if left_sibling:
             current_node.x = left_sibling.x \
                     + (current_node.left_sibling.width + current_node.width) / 2 \
-                    + 2 * base_distance
+                    + base_distance
             current_node.modifier = current_node.x - midpoint
         else:
             current_node.x = midpoint
@@ -129,7 +129,8 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
             v_outer_right.ancestor = current_node
             # shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) + distance
             shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) \
-                + (v_inner_left.width + v_inner_right.width) / 2 + base_distance
+                + (v_inner_left.width + v_inner_right.width) / 2 \
+                + 0
             if shift > 0:
                 a = ancestor(v_inner_left, current_node, default_ancestor)
                 move_subtree(a, current_node, shift)

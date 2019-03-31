@@ -3,8 +3,8 @@ import ast
 import importlib
 import importlib.util
 from depender.graph.graph import Graph
+from depender.utilities.parsing import find_root_package, find_all_package_modules
 from collections import defaultdict
-
 from typing import List
 
 
@@ -22,86 +22,25 @@ class CodeParser:
         # Remove / if it is at the end of the given directory path
         if directory.endswith(os.path.sep):
             directory = directory[:-1]
-        package_root_path = None
-        package_name = None
-        filelist = list()
         # First traverse the whole directory, up to the given depth, to find the package name
         # Which should correspond to the first directory that contains an __init__.py file
-        for root, dirs, files in os.walk(directory, followlinks=follow_links):
-            # Check to see if there are user specified directories that should be skipped
-            skip = False
-            if excluded_directories is not None:
-                for folder_to_exclude in excluded_directories:
-                    if os.path.sep + folder_to_exclude in root:
-                        skip = True
-                        break
-            if skip is True:
-                continue
-
-            # Skip __pycache__ directories
-            if "__pycache__" in root:
-                continue
-
-            current_depth = root.count(os.path.sep)
-
-            # Don't go deeper than "depth" if it has a non-negative value
-            if current_depth > depth >= 0:
-                dirs[:] = list()
-                files[:] = list()
-
-            if package_root_path is None:
-                if "__init__.py" in files:
-                    package_root_path = root
-                    package_name = os.path.basename(root)
-                    break
-
+        package_name, package_root_path = find_root_package(directory,
+                                                            excluded_directories,
+                                                            depth=depth, followlinks=follow_links)
         # If the package name was not found return
         if package_name is None:
             return self.graph
 
         # Then traverse the whole directory again, up to the given depth, to find all python modules and files
-        for root, dirs, files in os.walk(directory, followlinks=follow_links):
-            # Check to see if there are user specified directories that should be skipped
-            skip = False
-            if excluded_directories is not None:
-                for folder_to_exclude in excluded_directories:
-                    if os.path.sep + folder_to_exclude in root:
-                        skip = True
-                        break
-            if skip is True:
-                continue
-
-            # Skip __pycache__ directories
-            if "__pycache__" in root:
-                continue
-
-            current_depth = root.count(os.path.sep)
-
-            # Don't go deeper than "depth" if it has a non-negative value
-            if current_depth > depth >= 0:
-                dirs[:] = list()
-                files[:] = list()
-
-            for filename in files:
-                # Skip non python files
-                if not filename.endswith(".py"):
-                    continue
-                # Skip .pyc and __init__.py files
-                if ".pyc" in filename or "__init__.py" in filename:
-                    continue
-
-                if len(package_root_path) > len(root):
-                    module_dot_path = "." * (package_root_path.count(os.path.sep) - root.count(os.path.sep) + 1)\
-                                      + filename[:-3]
-                else:
-                    module_dot_path = ".".join(filter(lambda x: bool(x), [package_name,
-                                                                          root[len(package_root_path) + 1:],
-                                                                          filename[:-3]]))
-                filelist.append((os.path.join(root, filename), module_dot_path))
-                self.graph.add_node(module_dot_path, label=module_dot_path)
+        file_list = find_all_package_modules(package_root_path,
+                                             package_name,
+                                             self.graph,
+                                             excluded_directories,
+                                             depth=depth,
+                                             followlinks=follow_links)
 
         # Finally traverse only the files that were found
-        for filepath, module_dot_path in filelist:
+        for filepath, module_dot_path in file_list:
             self.parse_file(filepath, module_dot_path,
                             package_name, include_external,
                             parse_importlib)
@@ -119,10 +58,19 @@ class CodeParser:
                                                  include_external=include_external)
 
                 elif isinstance(node, ast.ImportFrom):
-                    self.parse_second_form_import(import_node=node,
-                                                  importing_module=module_dot_path,
-                                                  package_name=package_name,
-                                                  include_external=include_external)
+                    # In case the import is of the form: from . import foo
+                    # Then the module attribute is set to None and so we treat the import
+                    # as an import of the first form
+                    if node.module is None:
+                        self.parse_first_form_import(import_node=node,
+                                                     importing_module=module_dot_path,
+                                                     package_name=package_name,
+                                                     include_external=include_external)
+                    else:
+                        self.parse_second_form_import(import_node=node,
+                                                      importing_module=module_dot_path,
+                                                      package_name=package_name,
+                                                      include_external=include_external)
 
                 elif isinstance(node, ast.Call) and parse_importlib:
                     if isinstance(node.func, ast.Name) and node.func.id == "import_module":

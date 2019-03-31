@@ -42,7 +42,7 @@ class StructureParser:
                 break
 
             if not self.graph.node_exists(root):
-                self.graph.add_node(name=root, label=os.path.basename(root), type="root")
+                self.graph.add_node(root, label=os.path.basename(root), type="root")
 
             for i, element in enumerate(dirs + files):
                 if "__pycache__" in element:
