@@ -1,6 +1,6 @@
 from functools import partial
 from collections import defaultdict
-from typing import Any, List, Iterable, Union, Tuple, Optional
+from typing import Any, Dict, List, Iterable, Union, Tuple, Optional
 
 
 class Node:
@@ -8,24 +8,24 @@ class Node:
                       "shift", "modifier", "thread", "parent", "ancestor",
                       "leftmost_sibling", "left_sibling", "right_sibling"]
 
-    def __init__(self, name: str, **kwargs: Optional[Any]) -> None:
-        self.name = name
-        self.label = kwargs.get("label", "")
-        self.type = kwargs.get("type", None)
-        self.x = kwargs.get("x", 0)
-        self.y = kwargs.get("y", 0)
-        self.width = kwargs.get("width", 0)
-        self.height = kwargs.get("height", 0)
-        self.index = kwargs.get("index", 1)
-        self.change = kwargs.get("change", 0)
-        self.shift = kwargs.get("shift", 0)
-        self.modifier = kwargs.get("modifier", 0)
-        self.thread = kwargs.get("thread", None)
-        self.parent = kwargs.get("parent", None)
-        self.children = kwargs.get("children", list())
-        self.ancestor = kwargs.get("ancestor", name)
-        self.leftmost_sibling = kwargs.get("leftmost_sibling", None)
-        self.left_sibling = kwargs.get("left_sibling", None)
+    def __init__(self, name: str, **kwargs: Any) -> None:
+        self.name = name  # type: str
+        self.label = kwargs.get("label", "")  # type: str
+        self.type = kwargs.get("type", None)  # type: Optional[str]
+        self.x = kwargs.get("x", 0)  # type: float
+        self.y = kwargs.get("y", 0)  # type: float
+        self.width = kwargs.get("width", 0)  # type: float
+        self.height = kwargs.get("height", 0)  # type: float
+        self.index = kwargs.get("index", 1)  # type: int
+        self.change = kwargs.get("change", 0)  # type: float
+        self.shift = kwargs.get("shift", 0)  # type: float
+        self.modifier = kwargs.get("modifier", 0)  # type: float
+        self.thread = kwargs.get("thread", None)  # type: Optional[Node]
+        self.parent = kwargs.get("parent", None)  # type: Optional[Node]
+        self.children = kwargs.get("children", list())  # type: List[Node]
+        self.ancestor = kwargs.get("ancestor", self)  # type: Node
+        self.leftmost_sibling = kwargs.get("leftmost_sibling", None)  # type: Optional[Node]
+        self.left_sibling = kwargs.get("left_sibling", None)  # type: Optional[Node]
 
     def get_property(self, property: str) -> Optional[Any]:
         try:
@@ -42,8 +42,8 @@ class Node:
 
 class Graph:
     def __init__(self) -> None:
-        self.nodes = dict()
-        self.edges = defaultdict(partial(defaultdict, dict))
+        self.nodes = dict()  # type: Dict[str, Node]
+        self.edges = defaultdict(partial(defaultdict, dict))  # type: ignore
 
     def add_node(self, name: str, **kwargs: Union[int, str]) -> None:
         if name not in self.nodes:
@@ -67,13 +67,19 @@ class Graph:
             self.nodes[sink].leftmost_sibling = self.nodes[next(iter(self.edges[source].keys()))]
             self.nodes[sink].left_sibling = self.nodes[list(self.edges[source].keys())[-2]]
 
-    def get_root_node(self) -> Node:
-        return next(iter(self.nodes.values()))
+    def get_root_node(self) -> Optional[Node]:
+        try:
+            return next(iter(self.nodes.values()))
+        except StopIteration:
+            return None
 
-    def get_node(self, node: str) -> Node:
-        return self.nodes[node]
+    def get_node(self, node: str) -> Optional[Node]:
+        try:
+            return self.nodes[node]
+        except KeyError:
+            return None
 
-    def get_all_nodes(self) -> List[str]:
+    def get_all_node_names(self) -> List[str]:
         return list(self.nodes.keys())
 
     def get_node_children(self, node: str) -> List[Node]:

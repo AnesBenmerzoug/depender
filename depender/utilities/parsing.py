@@ -1,6 +1,6 @@
 import os
 from depender.graph.graph import Graph
-from typing import List, Tuple, Iterable
+from typing import List, Tuple, Iterable, Optional
 
 
 def check_if_skip_directory(directory: str, excluded_directories: List[str]) -> bool:
@@ -20,7 +20,7 @@ def traverse_directory(root_directory: str,
                        excluded_directories: List[str],
                        depth: int,
                        followlinks: bool,
-                       breadth_first: bool = False) -> Iterable[Tuple[str, str, str]]:
+                       breadth_first: bool = False) -> Iterable[Tuple[str, List[str], List[str]]]:
     if breadth_first:
         dirlist = [(root, dirs, files)
                    for root, dirs, files in os.walk(root_directory, followlinks=followlinks)
@@ -44,7 +44,7 @@ def traverse_directory(root_directory: str,
 def find_root_package(root_directory: str,
                       excluded_directories: List[str],
                       depth: int,
-                      followlinks: bool) -> Tuple[str, str]:
+                      followlinks: bool) -> Tuple[Optional[str], Optional[str]]:
     package_root_path = None
     package_name = None
     for root, dirs, files in traverse_directory(root_directory,

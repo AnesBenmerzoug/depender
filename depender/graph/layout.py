@@ -1,4 +1,5 @@
 from depender.graph.graph import Graph, Node
+from typing import Optional
 
 
 def layout_structure_graph(graph: Graph,
@@ -18,8 +19,9 @@ def layout_structure_graph(graph: Graph,
 
     """
     root_node = graph.get_root_node()
-    first_walk(root_node, base_distance=base_distance_x)
-    second_walk(root_node, -root_node.x, base_distance=base_distance_y)
+    if root_node is not None:
+        first_walk(root_node, base_distance=base_distance_x)
+        second_walk(root_node, -root_node.x, base_distance=base_distance_y)
 
 
 def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
@@ -40,7 +42,7 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
     children = current_node.children
     children_count = len(children)
     if children_count == 0:
-        if current_node.leftmost_sibling:
+        if current_node.left_sibling:
             current_node.x = current_node.left_sibling.x \
                 + (current_node.left_sibling.width + current_node.width) / 2 \
                 + base_distance
@@ -62,9 +64,8 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
         # If the current node has no left sibling i.e. is the leftmost one
         # then assign the midpoint coordinate to it, else shift from its left sibling
         # and compute the modifier value
-        left_sibling = current_node.left_sibling
-        if left_sibling:
-            current_node.x = left_sibling.x \
+        if current_node.left_sibling:
+            current_node.x = current_node.left_sibling.x \
                     + (current_node.left_sibling.width + current_node.width) / 2 \
                     + base_distance
             current_node.modifier = current_node.x - midpoint
@@ -112,20 +113,25 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
 
     """
     left_sibling = current_node.left_sibling
-    if left_sibling is not None:
+    leftmost_sibling = current_node.leftmost_sibling
+    if left_sibling is not None and leftmost_sibling is not None:
         v_inner_right = v_outer_right = current_node
         v_inner_left = left_sibling
-        v_outer_left = v_inner_right.leftmost_sibling
+        v_outer_left = leftmost_sibling
         sir = v_inner_right.modifier
         sor = v_outer_right.modifier
         sil = v_inner_left.modifier
         sol = v_outer_left.modifier
         # Traverse the contours
-        while next_right(v_inner_left) and next_left(v_inner_right):
-            v_inner_left = next_right(v_inner_left)
-            v_inner_right = next_left(v_inner_right)
-            v_outer_left = next_left(v_outer_left)
-            v_outer_right = next_right(v_outer_right)
+        next_inner_left = next_right(v_inner_left)
+        next_inner_right = next_left(v_inner_right)
+        next_outer_left = next_left(v_outer_left)
+        next_outer_right = next_right(v_outer_right)
+        while next_inner_left and next_inner_right and next_outer_right and next_outer_left:
+            v_inner_left = next_inner_left
+            v_inner_right = next_inner_right
+            v_outer_left = next_outer_left
+            v_outer_right = next_outer_right
             v_outer_right.ancestor = current_node
             # shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) + distance
             shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) \
@@ -140,6 +146,11 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
             sir += v_inner_right.modifier
             sol += v_outer_left.modifier
             sor += v_outer_right.modifier
+            # Get the next elements in the contours
+            next_inner_left = next_right(v_inner_left)
+            next_inner_right = next_left(v_inner_right)
+            next_outer_left = next_left(v_outer_left)
+            next_outer_right = next_right(v_outer_right)
         if next_right(v_inner_left) and not next_right(v_outer_right):
             v_outer_right.thread = next_right(v_inner_left)
             v_outer_right.modifier += sil - sor
@@ -169,7 +180,7 @@ def move_subtree(left_ancestor: Node, right_ancestor: Node, shift: float) -> Non
 
 
 def execute_shifts(node: Node) -> None:
-    shift = change = 0
+    shift = change = 0  # type: float
     for child in list(reversed(node.children)):
         child.x += shift
         child.modifier += shift
@@ -177,7 +188,7 @@ def execute_shifts(node: Node) -> None:
         shift += child.shift + change
 
 
-def next_left(node: Node) -> Node:
+def next_left(node: Node) -> Optional[Node]:
     r"""
     Traverse the left contour of the subtree rooted at node
 
@@ -194,7 +205,7 @@ def next_left(node: Node) -> Node:
         return node.thread
 
 
-def next_right(node: Node) -> Node:
+def next_right(node: Node) -> Optional[Node]:
     r"""
     Traverse the right contour of the subtree rooted at node
 
@@ -224,9 +235,10 @@ def ancestor(node_1: Node, node_2: Node, default_ancestor: Node) -> Node:
         Greatest uncommon ancestor or default ancestor
 
     """
-    if node_1.ancestor in node_2.parent.children:
-        return node_1.ancestor
-    else:
-        return default_ancestor
+    if node_1.ancestor and node_2.parent:
+        if node_1.ancestor in node_2.parent.children:
+            return node_1.ancestor
+
+    return default_ancestor
 
 

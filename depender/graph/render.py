@@ -1,20 +1,20 @@
 import os
 import math
-import networkx as nx
+import networkx as nx  # type: ignore
 from itertools import chain
 from collections import defaultdict
-from depender.graph.graph import Graph
+from depender.graph.graph import Graph, Node
 from jinja2 import Environment, PackageLoader
-from bokeh.models import Circle, Range1d, HoverTool, TapTool, ColumnDataSource
-from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models.glyphs import Rect, MultiLine, Text
+from bokeh.models import Circle, Range1d, HoverTool, TapTool, ColumnDataSource  # type: ignore
+from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges  # type: ignore
+from bokeh.models.glyphs import Rect, MultiLine, Text  # type: ignore
 from depender.utilities.color import linear_gradient
 from depender.graph.layout import layout_structure_graph
-from bokeh.models.callbacks import CustomJS
-from bokeh.palettes import Spectral4
-from bokeh.embed import components
-from bokeh.plotting import figure
-from typing import List, Union
+from bokeh.models.callbacks import CustomJS  # type: ignore
+from bokeh.palettes import Spectral4  # type: ignore
+from bokeh.embed import components  # type: ignore
+from bokeh.plotting import figure  # type: ignore
+from typing import List, Dict, Union, Tuple
 
 
 class GraphRenderer:
@@ -70,8 +70,8 @@ class GraphRenderer:
         # Create the Networkx directional graph instance from the edge dictionary
         nx_graph = nx.DiGraph(graph.edges)
         # Assign names and colors to nodes depending on in and out degrees
-        node_attrs = defaultdict(dict)
-        for node in graph.get_all_nodes():
+        node_attrs = defaultdict(dict)  # type: Dict[str, Dict[str, Union[float, str]]]
+        for node in graph.get_all_node_names():
             in_degree = graph.in_degree(node)
             out_degree = graph.out_degree(node)
             if in_degree == 0 and out_degree == 0:
@@ -117,7 +117,7 @@ class GraphRenderer:
 
     def render_dependency_matrix(self, graph: Graph) -> None:
         # Set up the figure
-        node_names = list(reversed(graph.get_all_nodes()))
+        node_names = list(reversed(graph.get_all_node_names()))
         node_count = graph.node_count()
         plot = self.get_figure(x_axis_location="below",
                                x_range=node_names,
@@ -136,11 +136,11 @@ class GraphRenderer:
                           line_color="#8b8a8c", fill_color="color")
         # Assign an index to each node to represent their position in the dependency matrix
         for index, node in enumerate(node_names):
-            graph.get_node(node).index = index
+            graph.get_node(node).index = index  # type: ignore
         # Create a dictionary that will hold the plot data
         data = dict(importing_name=list(),
                     imported_name=list(),
-                    color=list())
+                    color=list())  # type: Dict[str, List[Union[str, int]]]
         # Create an empty dependency matrix
         matrix = [[0 for _ in range(node_count)] for _ in range(node_count)]
         # Check the dependencies
@@ -150,8 +150,7 @@ class GraphRenderer:
                 data["imported_name"].append(sink_node)
         for source_node, sink_nodes in graph.edges_iter():
             for sink_node in sink_nodes:
-                matrix[graph.get_node(source_node).index][graph.get_node(sink_node).index] += 1
-                # matrix[self.node_dict[sink_node]["index"]][self.node_dict[source_node]["index"]] += 1
+                matrix[graph.get_node(source_node).index][graph.get_node(sink_node).index] += 1  # type: ignore
         # Assign colors
         for element in list(chain.from_iterable(matrix)):
             if element == 0:
@@ -179,7 +178,7 @@ class GraphRenderer:
         layout_structure_graph(graph, step_x, step_y)
 
         # Iterate over the nodes of the graph to collect data
-        node_data = defaultdict(list)
+        node_data = defaultdict(list)  # type: Dict[str, List[Union[None, str, float]]]
         for node in graph.nodes_iter():
             node_data["center_x"].append(node.x)
             node_data["center_y"].append(node.y)
@@ -198,13 +197,16 @@ class GraphRenderer:
         node_data = ColumnDataSource(node_data)
 
         # Iterate over the edges of the graph to collect data
-        edge_data = defaultdict(list)
+        edge_data = defaultdict(list)  # type: Dict[str, List[Tuple[float, float]]]
         for edge_begin, edge_ends in graph.edges_iter():
             for edge_end in edge_ends.keys():
-                edge_data["xs"].append([graph.get_node(edge_begin).x,
-                                        graph.get_node(edge_end).x])
-                edge_data["ys"].append([graph.get_node(edge_begin).y,
-                                        graph.get_node(edge_end).y])
+                begin_node = graph.get_node(edge_begin)
+                end_node = graph.get_node(edge_end)
+                if begin_node and end_node:
+                    edge_data["xs"].append((begin_node.x,
+                                            end_node.x))
+                    edge_data["ys"].append((begin_node.y,
+                                            end_node.y))
 
         edge_data = ColumnDataSource(edge_data)
 

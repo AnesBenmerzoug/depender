@@ -1,6 +1,6 @@
 import click
 from typing import List
-from click_spinner import spinner
+from click_spinner import spinner  # type: ignore
 from depender.parsers.code_parser import CodeParser
 from depender.parsers.structure_parser import StructureParser
 from depender.graph.render import GraphRenderer

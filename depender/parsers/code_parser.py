@@ -4,14 +4,12 @@ import importlib
 import importlib.util
 from depender.graph.graph import Graph
 from depender.utilities.parsing import find_root_package, find_all_package_modules
-from collections import defaultdict
-from typing import List
+from typing import List, Union
 
 
 class CodeParser:
     def __init__(self) -> None:
         self.graph = Graph()
-        self.sub_graphs = defaultdict(list)
 
     def parse_project(self, directory: str,
                       excluded_directories: List[str],
@@ -28,7 +26,7 @@ class CodeParser:
                                                             excluded_directories,
                                                             depth=depth, followlinks=follow_links)
         # If the package name was not found return
-        if package_name is None:
+        if package_name is None or package_root_path is None:
             return self.graph
 
         # Then traverse the whole directory again, up to the given depth, to find all python modules and files
@@ -46,8 +44,12 @@ class CodeParser:
                             parse_importlib)
         return self.graph
 
-    def parse_file(self, filepath: str, module_dot_path: str,
-                   package_name: str, include_external: bool, parse_importlib: bool) -> None:
+    def parse_file(self,
+                   filepath: str,
+                   module_dot_path: str,
+                   package_name: str,
+                   include_external: bool,
+                   parse_importlib: bool) -> None:
         with open(filepath, "r") as f:
             module_tree = ast.parse(f.read())
             for node in ast.walk(module_tree):
@@ -75,8 +77,10 @@ class CodeParser:
                 elif isinstance(node, ast.Call) and parse_importlib:
                     if isinstance(node.func, ast.Name) and node.func.id == "import_module":
                         try:
-                            import_node = ast.literal_eval(node.args[0])
-                            package = None if not node.keywords else node.keywords[0]
+                            import_node = str(ast.literal_eval(node.args[0]))
+                            package = ""
+                            if node.keywords and node.keywords[0].arg:
+                                package = node.keywords[0].arg
                             self.parse_importlib_import(import_node=import_node,
                                                         package=package,
                                                         importing_module=module_dot_path,
@@ -86,8 +90,10 @@ class CodeParser:
                     elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
                         if node.func.value.id == "importlib" and node.func.attr == "import_module":
                             try:
-                                import_node = ast.literal_eval(node.args[0])
-                                package = None if not node.keywords else node.keywords[0]
+                                import_node = str(ast.literal_eval(node.args[0]))
+                                package = ""
+                                if node.keywords and node.keywords[0].arg:
+                                    package = node.keywords[0].arg
                                 self.parse_importlib_import(import_node=import_node,
                                                             package=package,
                                                             importing_module=module_dot_path,
@@ -95,8 +101,11 @@ class CodeParser:
                             except ValueError:
                                 pass
 
-    def parse_first_form_import(self, import_node: ast.AST, package_name: str,
-                                importing_module: str, include_external: bool) -> None:
+    def parse_first_form_import(self,
+                                import_node: Union[ast.Import, ast.ImportFrom],
+                                package_name: str,
+                                importing_module: str,
+                                include_external: bool) -> None:
         for alias in import_node.names:
             imported_module = importlib.util.resolve_name(alias.name, package_name)
 
@@ -111,9 +120,12 @@ class CodeParser:
                 self.graph.add_node(package, label=package + " external")
                 self.graph.add_edge(importing_module, package)
 
-    def parse_second_form_import(self, import_node: ast.AST, package_name: str,
-                                 importing_module: str, include_external: bool) -> None:
-        imported_from_module = importlib.util.resolve_name(import_node.module, package_name)
+    def parse_second_form_import(self,
+                                 import_node: ast.ImportFrom,
+                                 package_name: str,
+                                 importing_module: str,
+                                 include_external: bool) -> None:
+        imported_from_module = importlib.util.resolve_name(import_node.module, package_name)  # type: ignore
 
         # Check if the first part of the from ... import ... is a module
         if self.graph.node_exists(imported_from_module):
@@ -130,8 +142,11 @@ class CodeParser:
                 self.graph.add_node(package, label=package)
                 self.graph.add_edge(importing_module, package)
 
-    def parse_importlib_import(self, import_node: ast.AST, package: str,
-                               importing_module: str, include_external: bool) -> None:
+    def parse_importlib_import(self,
+                               import_node: str,
+                               package: str,
+                               importing_module: str,
+                               include_external: bool) -> None:
         imported_module = importlib.util.resolve_name(import_node, package)
 
         # Check if the imported module is in the list of this package's modules
