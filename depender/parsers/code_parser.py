@@ -28,7 +28,6 @@ class CodeParser:
         # If the package name was not found return
         if package_name is None or package_root_path is None:
             return self.graph
-
         # Then traverse the whole directory again, up to the given depth, to find all python modules and files
         file_list = find_all_package_modules(package_root_path,
                                              package_name,
@@ -36,7 +35,6 @@ class CodeParser:
                                              excluded_directories,
                                              depth=depth,
                                              followlinks=follow_links)
-
         # Finally traverse only the files that were found
         for filepath, module_dot_path in file_list:
             self.parse_file(filepath, module_dot_path,

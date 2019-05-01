@@ -1,5 +1,6 @@
 import os
 from depender.graph.graph import Graph
+from depender.utilities.parsing import traverse_directory
 
 from typing import List
 
@@ -15,32 +16,9 @@ class StructureParser:
         if directory.endswith(os.path.sep):
             directory = directory[:-1]
         directory = os.path.abspath(directory)
-        root_depth = directory.count(os.path.sep)
-        for root, dirs, files in os.walk(directory, followlinks=follow_links):
-            # Check to see if there are user specified directories that should be skipped
-            skip = False
-            if excluded_directories is not None:
-                for folder_to_exclude in excluded_directories:
-                    if os.path.sep + folder_to_exclude in root:
-                        skip = True
-                        break
-            if skip is True:
-                continue
-
-            # Skip __pycache__ directories
-            if "__pycache__" in root:
-                continue
-
-            # Skip hidden directories
-            if "/." in root:
-                continue
-
-            current_depth = root.count(os.path.sep) - root_depth
-
-            # Don't go deeper than "depth" if it has a non-negative value
-            if current_depth > depth >= 0:
-                break
-
+        for root, dirs, files in traverse_directory(directory,
+                                                    excluded_directories,
+                                                    depth=depth, followlinks=follow_links):
             if not self.graph.node_exists(root):
                 self.graph.add_node(root, label=os.path.basename(root), type="root")
 

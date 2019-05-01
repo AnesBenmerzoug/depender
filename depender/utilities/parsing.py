@@ -5,15 +5,17 @@ from typing import List, Tuple, Iterable, Optional
 
 def check_if_skip_directory(directory: str, excluded_directories: List[str]) -> bool:
     skip = False
-    if excluded_directories is not None:
-        for folder_to_exclude in excluded_directories:
-            if os.path.sep + folder_to_exclude in directory:
-                skip = True
-                break
-    if skip is True or "__pycache__" in directory:
-        return True
-    else:
-        return False
+    if directory in excluded_directories or "__pycache__" in directory:
+        skip = True
+    return skip
+
+
+def skip_hidden_directories(directories: List[str]) -> List[str]:
+    copy_of_directories = directories[:]
+    for directory in copy_of_directories:
+        if directory.startswith("."):
+            directories.remove(directory)
+    return directories
 
 
 def traverse_directory(root_directory: str,
@@ -21,24 +23,22 @@ def traverse_directory(root_directory: str,
                        depth: int,
                        followlinks: bool,
                        breadth_first: bool = False) -> Iterable[Tuple[str, List[str], List[str]]]:
-    if breadth_first:
-        dirlist = [(root, dirs, files)
-                   for root, dirs, files in os.walk(root_directory, followlinks=followlinks)
-                   if root.count(os.path.sep) <= depth or depth < 0]
-        dirlist = sorted(dirlist, key=lambda x: x[0].count(os.path.sep))
-        for root, dirs, files in dirlist:
-            yield root, dirs, files
-    else:
-        for root, dirs, files in os.walk(root_directory, followlinks=followlinks):
-            # Check to see if there are user specified directories that should be skipped
-            if check_if_skip_directory(root, excluded_directories):
-                continue
-            current_depth = root.count(os.path.sep)
-            # Don't go deeper than "depth" if it has a non-negative value
-            if current_depth > depth >= 0:
-                dirs[:] = list()
-                files[:] = list()
-            yield root, dirs, files
+    root_depth = root_directory.count(os.path.sep)
+    dirlist = list()
+    for root, dirs, files in os.walk(root_directory, followlinks=followlinks):
+        # Check to see if there are user specified directories that should be skipped
+        if check_if_skip_directory(root, excluded_directories):
+            continue
+        # Don't go deeper than "depth" if it has a non-negative value
+        current_depth = root.count(os.path.sep) - root_depth
+        if current_depth > depth >= 0:
+            continue
+        dirs = skip_hidden_directories(dirs)
+        dirlist.append((root, dirs, files))
+        if breadth_first:
+            dirlist = sorted(dirlist, key=lambda x: x[0].count(os.path.sep))
+    for root, dirs, files in dirlist:
+        yield root, dirs, files
 
 
 def find_root_package(root_directory: str,

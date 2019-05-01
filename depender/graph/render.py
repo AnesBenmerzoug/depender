@@ -5,7 +5,8 @@ from itertools import chain
 from collections import defaultdict
 from depender.graph.graph import Graph, Node
 from jinja2 import Environment, PackageLoader
-from bokeh.models import Circle, Range1d, HoverTool, TapTool, ColumnDataSource  # type: ignore
+from bokeh.models import (Circle, Range1d, HoverTool,
+                          TapTool, ColumnDataSource, CategoricalAxis)  # type: ignore
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges  # type: ignore
 from bokeh.models.glyphs import Rect, MultiLine, Text  # type: ignore
 from depender.utilities.color import linear_gradient
@@ -14,6 +15,7 @@ from bokeh.models.callbacks import CustomJS  # type: ignore
 from bokeh.palettes import Spectral4  # type: ignore
 from bokeh.embed import components  # type: ignore
 from bokeh.plotting import figure  # type: ignore
+from bokeh.events import LODStart
 from typing import List, Dict, Union, Tuple
 
 
@@ -39,7 +41,6 @@ class GraphRenderer:
                       match_aspect=True,
                       toolbar_location="left",
                       tools=tools,
-                      active_scroll="wheel_zoom",
                       active_drag="pan",
                       **kwargs)
         plot.xaxis.major_tick_line_color = None  # turn off x-axis major ticks
@@ -89,7 +90,7 @@ class GraphRenderer:
         plot.add_tools(HoverTool(tooltips=[("Module Name", "@node_name")]), TapTool())
 
         # Transfer the graph from networkx to bokeh
-        graph_renderer = from_networkx(nx_graph, nx.shell_layout, scale=5, center=(0, 0))
+        graph_renderer = from_networkx(nx_graph, nx.fruchterman_reingold_layout, k=2, scale=1, center=(0, 0))
         # Change the node glyph
         graph_renderer.node_renderer.glyph = Circle(size=30, fill_color="node_color")
         graph_renderer.node_renderer.hover_glyph = Circle(size=30, fill_color=Spectral4[1])
@@ -104,18 +105,21 @@ class GraphRenderer:
         plot.renderers.append(graph_renderer)
 
         # Get the x and y coordinates of all nodes
-        x_coordinates, y_coordinates = zip(*graph_renderer.layout_provider.graph_layout.values())
+        try:
+            x_coordinates, y_coordinates = zip(*graph_renderer.layout_provider.graph_layout.values())
 
-        # Set the x_range and y_range intervals to center the plot
-        plot.x_range = Range1d(min(x_coordinates) - 0.2 * abs(min(x_coordinates)),
-                               max(x_coordinates) + 0.2 * abs(max(x_coordinates)))
-        plot.y_range = Range1d(min(y_coordinates) - 0.2 * abs(min(y_coordinates)),
-                               max(y_coordinates) + 0.2 * abs(max(y_coordinates)))
+            # Set the x_range and y_range intervals to center the plot
+            plot.x_range = Range1d(min(x_coordinates) - 0.2 * abs(min(x_coordinates)),
+                                   max(x_coordinates) + 0.2 * abs(max(x_coordinates)))
+            plot.y_range = Range1d(min(y_coordinates) - 0.2 * abs(min(y_coordinates)),
+                                   max(y_coordinates) + 0.2 * abs(max(y_coordinates)))
+        except ValueError:
+            pass
 
         # Render the graph
         self.render_graph(plot, self.output_dir, "dependency_graph")
 
-    def render_dependency_matrix(self, graph: Graph) -> None:
+    def render_dependency_matrix(self, graph: Graph, base_font_size: int = 10) -> None:
         # Set up the figure
         node_names = list(reversed(graph.get_all_node_names()))
         node_count = graph.node_count()
@@ -124,11 +128,37 @@ class GraphRenderer:
                                y_range=node_names)
         plot.add_tools(HoverTool(tooltips=[("Importing Module", "@importing_name"),
                                            ("Imported Module", "@imported_name")]))
-        plot.xaxis.axis_label = "Imported Modules"
-        plot.yaxis.axis_label = "Importing Module"
-        plot.xaxis.major_label_orientation = math.pi / 3
-        plot.axis.major_label_text_font_size = "10pt"
-        plot.axis.major_label_standoff = 0
+        plot.xaxis.visible = None
+        plot.yaxis.visible = None
+        # Creating new axes here in order to set a callback to adapt their font size to the zoom level
+        x_axis = CategoricalAxis(axis_label="Imported Modules",
+                                 axis_label_standoff=0,
+                                 major_label_text_font_size=str(base_font_size) + "pt",
+                                 major_label_orientation=math.pi / 3,
+                                 major_label_overrides=dict(zip(range(len(node_names)), node_names)))
+        y_axis = CategoricalAxis(axis_label="Importing Module",
+                                 axis_label_standoff=0,
+                                 major_label_text_font_size=str(base_font_size) + "pt",
+                                 major_label_overrides=dict(zip(range(len(node_names)), node_names)))
+        plot.add_layout(x_axis, "below")
+        plot.add_layout(y_axis, "left")
+
+        axes_label_callback = CustomJS(args=dict(x_axis=x_axis,
+                                                 y_axis=y_axis,
+                                                 x_range=plot.x_range,
+                                                 y_range=plot.y_range,
+                                                 base_font_size=base_font_size),
+                                       code="""
+            var x_factor = 8 / (x_range.end - x_range.start);
+            var y_factor = 8 / (y_range.end - y_range.start);
+            x_axis.major_label_text_font_size = base_font_size * x_factor + "pt";
+            y_axis.major_label_text_font_size = base_font_size * y_factor + "pt";
+            console.log(x_axis.major_label_text_font_size);
+            console.log(y_axis.major_label_text_font_size);
+            x_axis.change.emit();
+            y_axis.change.emit();
+        """)
+        plot.js_on_event(LODStart, axes_label_callback)
         # Add a rectangle glyph to represent the squares of the dependency matrix
         rectangle_size = 0.9
         rectangles = Rect(x="imported_name", y="importing_name",
@@ -173,10 +203,8 @@ class GraphRenderer:
                                base_font_size: float = 30) -> None:
         # Layout the node's of the structure to obtain a hierarchical structure
         step_x = base_width * base_font_size / 60
-        step_y = base_height * base_font_size * 3 / 10
-
+        step_y = base_height * base_font_size * 4 / 10
         layout_structure_graph(graph, step_x, step_y)
-
         # Iterate over the nodes of the graph to collect data
         node_data = defaultdict(list)  # type: Dict[str, List[Union[None, str, float]]]
         for node in graph.nodes_iter():
@@ -188,14 +216,11 @@ class GraphRenderer:
             node_data["type"].append(node.type)
             node_data["label"].append(node.label)
             node_data["font_size"].append(base_font_size)
-
             color = self.root_dir_color if node.type == "root" \
                 else self.dir_color if node.type == "directory" \
                 else self.file_color
             node_data["color"].append(color)
-
         node_data = ColumnDataSource(node_data)
-
         # Iterate over the edges of the graph to collect data
         edge_data = defaultdict(list)  # type: Dict[str, List[Tuple[float, float]]]
         for edge_begin, edge_ends in graph.edges_iter():
@@ -207,18 +232,18 @@ class GraphRenderer:
                                             end_node.x))
                     edge_data["ys"].append((begin_node.y,
                                             end_node.y))
-
         edge_data = ColumnDataSource(edge_data)
-
         # Get a figure
-        plot = self.get_figure(height=600, width=1600)
+        plot = self.get_figure(height=600, width=1800, active_scroll="wheel_zoom")
         # plot.add_tools(HoverTool(tooltips=[("Type", "@type"), ("Path", "@name")]))
         lines = MultiLine(xs="xs", ys="ys", line_color="#8b8a8c")
         rectangles = Rect(x="center_x", y="center_y", width="width", height="height",
                           line_color="#8b8a8c", fill_color="color")
         text = Text(x="center_x", y="center_y", text="label", text_font_size="font_size",
                     text_baseline="middle", text_align="center")
-        text_zoom_callback = CustomJS(args=dict(source=node_data, base_size=base_font_size), code="""
+        text_zoom_callback = CustomJS(args=dict(source=node_data,
+                                                base_size=base_font_size),
+                                      code="""
             var length = source.data.font_size.length;
             var start = this.start;
             var end = this.end;
