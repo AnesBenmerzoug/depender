@@ -1,8 +1,8 @@
-from depender.graph.graph import Graph, Node
+from depender.graph import StructureGraph, Node
 from typing import Optional
 
 
-def layout_structure_graph(graph: Graph,
+def layout_structure_graph(graph: StructureGraph,
                            base_distance_x: float = 1.0,
                            base_distance_y: float = 1.0) -> None:
     r"""
