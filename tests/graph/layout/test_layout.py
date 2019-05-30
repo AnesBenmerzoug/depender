@@ -1,9 +1,8 @@
 from depender.graph.layout import layout_structure_graph
-from depender.graph.graph import Graph
-import pytest
+from depender.graph import StructureGraph
 
 
-def test_structure_layout(graph: Graph) -> None:
+def test_structure_layout(graph: StructureGraph) -> None:
     layout_structure_graph(graph, base_distance_x=1, base_distance_y=1)
     # Check X coordinates
     assert graph.get_node("1").x == 0.0
@@ -25,7 +24,7 @@ def test_structure_layout(graph: Graph) -> None:
     assert graph.get_node("8").y == -2.0
 
 
-def test_structure_layout_with_label(graph_with_labels: Graph) -> None:
+def test_structure_layout_with_label(graph_with_labels: StructureGraph) -> None:
     graph = graph_with_labels
     layout_structure_graph(graph, base_distance_x=1, base_distance_y=1)
     # Check X coordinates
