@@ -6,3 +6,4 @@ __pycache__
 .coverage
 html
 .mypy_cache
+.hypothesis
