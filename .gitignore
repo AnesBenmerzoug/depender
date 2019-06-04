@@ -4,6 +4,6 @@ __pycache__
 .tox
 .pytest_cache
 .coverage
-html
+graphs
 .mypy_cache
 .hypothesis
