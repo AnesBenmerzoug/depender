@@ -5,8 +5,7 @@ from typing import Optional
 def layout_structure_graph(graph: StructureGraph,
                            base_distance_x: float = 1.0,
                            base_distance_y: float = 1.0) -> None:
-    r"""
-    Layout the structure graph using a modified version of Buchheim's algorithm
+    r"""Layout the structure graph using a modified version of Buchheim's algorithm
     that takes into account the width and height of the nodes which are proportional 
     to the length of the nodes' labels and to the font size
 
@@ -16,7 +15,6 @@ def layout_structure_graph(graph: StructureGraph,
             gives the actual horizontal step size.
         base_distance_y: Base vertical step size which is used to determine a node's height 
             and the distance between levels in the graph
-
     """
     root_node = graph.get_root_node()
     if root_node is not None:
@@ -25,8 +23,7 @@ def layout_structure_graph(graph: StructureGraph,
 
 
 def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
-    r"""
-    First part of Buchheim's algorithm.
+    r"""First part of Buchheim's algorithm.
     The tree is traversed in a bottom up manner.
 
     Args:
@@ -34,10 +31,7 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
         base_distance: Base horizontal distance between sibling nodes.
             it will be multiplied by factor proportional to the node's label in order
             to obtain the actual distance
-
     """
-    # Compute the actual distance
-    current_node.width = base_distance * len(current_node.label)
     # Get the current node's children and count them
     children = current_node.children
     children_count = len(children)
@@ -77,8 +71,7 @@ def second_walk(current_node: Node,
                 modifier: float = 0, 
                 depth: int = 0, 
                 base_distance: float = 1):
-    r"""
-    Second part of Buchheim's algorithm.
+    r"""Second part of Buchheim's algorithm.
     The tree is traversed in a top down manner.
 
     Args:
@@ -86,17 +79,13 @@ def second_walk(current_node: Node,
         modifier: Distance by which the x position of the current node will be shifted
         depth: Depth of the current node in the graph
         base_distance: Vertical distance between levels in the graph
-
     """
     # Shift the current node's x position by an amount equal to modifier
     # and increment modifier by an amount equal to the current node's modifier property
     current_node.x += modifier
     modifier += current_node.modifier
-    # The current node's y position is equal to the current depth
-    current_node.y = -depth * base_distance
-    # The current node's height is equal to a third of the base distance
-    current_node.height = base_distance / 3
-    # Traverse the children of the current node
+    # The current node's y position is equal to the current depth times 1 + the height
+    current_node.y = -depth * (current_node.height + base_distance)
     for child in current_node.children:
         second_walk(child, modifier, depth + 1, base_distance)
 
@@ -110,7 +99,7 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
         base_distance: Base horizontal distance between sibling nodes
 
     Returns:
-
+        Either the given default ancestor node or the current node
     """
     left_sibling = current_node.left_sibling
     leftmost_sibling = current_node.leftmost_sibling
@@ -133,10 +122,10 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
             v_outer_left = next_outer_left
             v_outer_right = next_outer_right
             v_outer_right.ancestor = current_node
-            # shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) + distance
+            # shift = (v_inner_left.x + sil) - (v_inner_right.x + sir)
             shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) \
                 + (v_inner_left.width + v_inner_right.width) / 2 \
-                + 0
+                + base_distance
             if shift > 0:
                 a = ancestor(v_inner_left, current_node, default_ancestor)
                 move_subtree(a, current_node, shift)
@@ -162,14 +151,12 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
 
 
 def move_subtree(left_ancestor: Node, right_ancestor: Node, shift: float) -> None:
-    r"""
-    Shift the right subtree rooted at the right ancestor
+    r"""Shift the right subtree rooted at the right ancestor
 
     Args:
         left_ancestor: Ancestor node of the left subtree
         right_ancestor: Ancestor node of the right subtree
         shift: Amount by which the right subtree will be shifted
-
     """
     num_subtrees_between_ancestors = right_ancestor.index - left_ancestor.index
     right_ancestor.change -= shift / num_subtrees_between_ancestors
@@ -189,15 +176,13 @@ def execute_shifts(node: Node) -> None:
 
 
 def next_left(node: Node) -> Optional[Node]:
-    r"""
-    Traverse the left contour of the subtree rooted at node
+    r"""Traverse the left contour of the subtree rooted at node
 
     Args:
         node: Node from which the next node in the left contour will be taken
 
     Returns:
         Next node in the left contour
-
     """
     if node.children:
         return node.children[0]
@@ -206,15 +191,13 @@ def next_left(node: Node) -> Optional[Node]:
 
 
 def next_right(node: Node) -> Optional[Node]:
-    r"""
-    Traverse the right contour of the subtree rooted at node
+    r"""Traverse the right contour of the subtree rooted at node
 
     Args:
         node: Node from which the next node in the right contour will be taken
 
     Returns:
         Next node in the right contour
-
     """
     if node.children:
         return node.children[-1]
@@ -223,8 +206,8 @@ def next_right(node: Node) -> Optional[Node]:
 
 
 def ancestor(node_1: Node, node_2: Node, default_ancestor: Node) -> Node:
-    r"""
-    Get the left greatest uncommon ancestor between node_1 and node_2 if found, otherwise return the default ancestor
+    r"""Get the left greatest uncommon ancestor between node_1 and node_2 if found,
+    otherwise return the default ancestor
 
     Args:
         node_1: First node
@@ -233,12 +216,10 @@ def ancestor(node_1: Node, node_2: Node, default_ancestor: Node) -> Node:
 
     Returns:
         Greatest uncommon ancestor or default ancestor
-
     """
     if node_1.ancestor and node_2.parent:
         if node_1.ancestor in node_2.parent.children:
             return node_1.ancestor
-
     return default_ancestor
 
 
