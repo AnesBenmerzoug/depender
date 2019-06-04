@@ -55,9 +55,10 @@ class Graph:
         else:
             return False
 
-    def edges_iter(self) -> Iterable[Tuple[str, dict]]:
-        for source, sink in self.edges.items():
-            yield source, sink
+    def edges_iter(self) -> Iterable[Tuple[str, str]]:
+        for source, sinks in self.edges.items():
+            for sink in sinks:
+                yield source, sink
 
     def in_degree(self, name: str) -> int:
         in_degree = 0
@@ -85,6 +86,9 @@ class StructureGraph(Graph):
         if len(self.edges[source]) > 1:
             self.nodes[sink].leftmost_sibling = self.nodes[next(iter(self.edges[source].keys()))]
             self.nodes[sink].left_sibling = self.nodes[list(self.edges[source].keys())[-2]]
+
+    def remove_edge(self, source: str, sink: str):
+        super().remove_edge(source, sink)
 
     def get_root_node(self) -> Node:
         if not self.nodes:
