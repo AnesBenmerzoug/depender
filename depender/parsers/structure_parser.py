@@ -1,5 +1,5 @@
 import os
-from depender.graph.graph import Graph
+from depender.graph import StructureGraph
 from depender.utilities.parsing import traverse_directory
 
 from typing import List
@@ -7,11 +7,11 @@ from typing import List
 
 class StructureParser:
     def __init__(self) -> None:
-        self.graph = Graph()
+        self.graph = StructureGraph()
 
     def parse_project(self, directory: str,
                       excluded_directories: List[str],
-                      follow_links: bool = True, depth: int = 5) -> Graph:
+                      follow_links: bool = True, depth: int = 5) -> StructureGraph:
         # Remove / if it is at the end of the given directory path
         if directory.endswith(os.path.sep):
             directory = directory[:-1]
