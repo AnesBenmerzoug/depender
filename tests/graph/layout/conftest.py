@@ -49,14 +49,14 @@ def graph_with_labels() -> StructureGraph:
     """
     graph = StructureGraph()
     # Create the nodes first in order to set their labels
-    graph.add_node("1", label="one")
-    graph.add_node("2", label="two")
-    graph.add_node("3", label="three")
-    graph.add_node("4", label="four")
-    graph.add_node("5", label="five")
-    graph.add_node("6", label="six")
-    graph.add_node("7", label="seven")
-    graph.add_node("8", label="eight")
+    graph.add_node("1", width=3)
+    graph.add_node("2", width=3)
+    graph.add_node("3", width=5)
+    graph.add_node("4", width=4)
+    graph.add_node("5", width=4)
+    graph.add_node("6", width=3)
+    graph.add_node("7", width=5)
+    graph.add_node("8", width=5)
     # Then connect them using edges
     graph.add_edge("1", "2")
     graph.add_edge("1", "3")
