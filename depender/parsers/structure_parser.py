@@ -1,5 +1,5 @@
 import os
-from depender.graph import StructureGraph
+from depender.graph.graph import StructureGraph
 from depender.utilities.parsing import traverse_directory
 
 from typing import List

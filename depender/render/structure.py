@@ -1,10 +1,11 @@
 import numpy as np
 from pathlib import Path
+from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from depender.graph.layout import layout_structure_graph
-from depender.render import GraphRenderer
-from depender.graph import StructureGraph
+from depender.render.render import GraphRenderer
+from depender.graph.graph import StructureGraph
 from typing import Optional
 
 
@@ -39,8 +40,14 @@ class StructureRenderer(GraphRenderer):
         fig = plt.gcf()
         text_boxes = list()
         coordinate_transformer = ax.transData.inverted()
+        cmap = cm.get_cmap("summer")
         for node in graph.nodes_iter():
-            color = "red"
+            if node.type == "root":
+                color = cmap(0)
+            elif node.type == "directory":
+                color = cmap(0.5)
+            else:
+                color = cmap(1.0)
             text_box = ax.text(node.x, node.y, s=node.label,
                                fontsize=self.base_font_size,
                                horizontalalignment="center",

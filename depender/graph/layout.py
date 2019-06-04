@@ -1,4 +1,5 @@
-from depender.graph import StructureGraph, Node
+from depender.graph.node import Node
+from depender.graph.graph import StructureGraph
 from typing import Optional
 
 

@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 from networkx.algorithms.planarity import check_planarity
 from networkx.algorithms.planar_drawing import combinatorial_embedding_to_pos
-from depender.render import GraphRenderer
-from depender.graph import Graph
+from depender.render.render import GraphRenderer
+from depender.graph.graph import Graph
 from typing import Optional
 
 

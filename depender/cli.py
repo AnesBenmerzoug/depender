@@ -3,7 +3,8 @@ from typing import List
 from click_spinner import spinner  # type: ignore
 from depender.parsers.code_parser import CodeParser
 from depender.parsers.structure_parser import StructureParser
-from depender.render import StructureRenderer, DependencyRenderer
+from depender.render.structure import StructureRenderer
+from depender.render.dependency import DependencyRenderer
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
