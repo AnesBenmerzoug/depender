@@ -7,3 +7,5 @@ __pycache__
 graphs
 .mypy_cache
 .hypothesis
+build
+dist
