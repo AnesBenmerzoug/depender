@@ -11,16 +11,18 @@ from typing import Optional
 
 
 class DependencyRenderer(GraphRenderer):
-    def show_or_save_figure(self, filename: Optional[str] = None) -> None:
+    def show_or_save_figure(self, filename: Optional[str] = None, transparent: bool = True) -> None:
         if self.output_format is None:
             plt.show()
         else:
             output_path = Path(self.output_dir, filename + "." + self.output_format)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(output_path)
+            plt.savefig(output_path, dpi=self.dpi, transparent=transparent)
 
     def render_graph(self, graph: Graph) -> None:
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(self.figure_dimensions[0]/self.dpi,
+                                        self.figure_dimensions[1]/self.dpi),
+                               dpi=self.dpi)
         ax.axis("off")
         nx_graph = nx.DiGraph(graph.edges)
         is_planar, embedding = check_planarity(nx_graph)
@@ -31,7 +33,9 @@ class DependencyRenderer(GraphRenderer):
         self.show_or_save_figure("dependency_graph")
 
     def render_matrix(self, graph: Graph):
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(self.figure_dimensions[0]/self.dpi,
+                                        self.figure_dimensions[1]/self.dpi),
+                               dpi=self.dpi)
         node_names = graph.get_all_node_names()
         node_count = graph.node_count()
 
@@ -41,13 +45,14 @@ class DependencyRenderer(GraphRenderer):
         matrix = np.zeros((node_count, node_count), dtype=int)
         for source, sink in graph.edges_iter():
             matrix[graph.get_node(source).index, graph.get_node(sink).index] += 1
-            matrix[graph.get_node(sink).index, graph.get_node(source).index] -= 1
+            # matrix[graph.get_node(sink).index, graph.get_node(source).index] -= 1
 
         cmap = plt.get_cmap("coolwarm")
         ax.matshow(matrix,
                    cmap=cmap,
                    aspect="equal",
-                   origin="upper")
+                   origin="upper",
+                   alpha=0.7)
         # Major ticks
         major_tick_locations = np.arange(node_count)
         ax.set_xticks(major_tick_locations)

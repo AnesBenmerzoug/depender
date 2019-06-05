@@ -17,17 +17,17 @@ class StructureRenderer(GraphRenderer):
         self.base_height = base_height
         self.base_font_size = base_font_size
 
-    def show_or_save_figure(self, filename: Optional[str] = None) -> None:
+    def show_or_save_figure(self, filename: Optional[str] = None, transparent: bool = True) -> None:
         if self.output_format is None:
             plt.show()
         else:
             output_path = Path(self.output_dir, filename + "." + self.output_format)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(output_path, dpi=self.dpi*10)
+            plt.savefig(output_path, dpi=self.dpi*10, transparent=transparent)
 
     def render_graph(self, graph: StructureGraph) -> None:
-        fig, ax = plt.subplots(figsize=(self.figure_size[0]/self.dpi,
-                                        self.figure_size[1]/self.dpi),
+        fig, ax = plt.subplots(figsize=(self.figure_dimensions[0]/self.dpi,
+                                        self.figure_dimensions[1]/self.dpi),
                                dpi=self.dpi)
         ax.axis("off")
         self.render_nodes(graph)
@@ -62,6 +62,7 @@ class StructureRenderer(GraphRenderer):
         x, y = zip(*[(node.x, node.y) for node in graph.nodes_iter()])
         for text_box, node in zip(text_boxes, graph.nodes_iter()):
             text_box.set_position((node.x, node.y))
+        # ax.set_aspect("equal")
         ax.set_xlim((min(x), max(x)))
         ax.set_ylim((min(y), max(y)))
 
