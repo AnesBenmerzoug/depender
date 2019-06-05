@@ -3,14 +3,14 @@
 Depender is a Python package that is used to determine and plot 
 the dependencies of a given Python package given its name or its path.
 
-![Dependency Graph](/docs/images/dependency_graph.png)
+![Dependency Graph](https://raw.githubusercontent.com/AnesBenmerzoug/depender/master/docs/images/dependency_graph.png)
 
-![Dependency Matrix](/docs/images/dependency_matrix.png)
+![Dependency Matrix](https://raw.githubusercontent.com/AnesBenmerzoug/depender/master/docs/images/dependency_matrix.png)
 
 As a bonus, it can also be used to plot a hierarchical diagram 
 of the directory structure of said package.
 
-![Structure Graph](/docs/images/structure_graph.png)
+![Structure Graph](https://raw.githubusercontent.com/AnesBenmerzoug/depender/master/docs/images/structure_graph.png)
 
 ## Installation
 
@@ -37,17 +37,11 @@ pip install .
 The package can be used from the command line:
 
 ```bash
-depender <packageName>
-```
-
-or 
-
-```bash
-depender --source <packagePath> 
+depender <packageNameOrPath>
 ```
 
 ```
-Usage: depender [OPTIONS] PACKAGE_PATH [EXCLUDED_DIRS]...
+Usage: depender [OPTIONS] PACKAGE_NAME_OR_PATH [EXCLUDED_DIRS]...
 
   Depender command line interface
 
@@ -61,17 +55,20 @@ Usage: depender [OPTIONS] PACKAGE_PATH [EXCLUDED_DIRS]...
   the package to be excluded from the graph.
 
 Options:
-  -o, --output-dir PATH  Output directory  [default: graphs]
-  -fmt, --format TEXT    Output format, if specified the graph will be
-                         rendered to a file with the given format
-  --include-external     When set, external packages are included in the
-                         graphs  [default: False]
-  --no-follow-links      When set the script visits directories pointed to by
-                         symlinks  [default: False]
-  --depth INTEGER        Depth of the directory recursion  [default: 5]
-  --version              Show the version and exit.
-  -h, --help             Show this message and exit.
-
+  -o, --output-dir PATH           Output directory  [default: graphs]
+  -fmt, --format TEXT             Output format, if specified the graph will
+                                  be rendered to a file with the given format
+  --dims, --image-dimensions TEXT
+                                  Dimensions of the rendered graphs given as
+                                  'width,height'  [default: 800,600]
+  --include-external              When set, external packages are included in
+                                  the graphs  [default: False]
+  --no-follow-links               When set the script visits directories
+                                  pointed to by symlinks  [default: False]
+  --depth INTEGER                 Depth of the directory recursion  [default:
+                                  6]
+  --version                       Show the version and exit.
+  -h, --help                      Show this message and exit.
 ```
 
 ## License
