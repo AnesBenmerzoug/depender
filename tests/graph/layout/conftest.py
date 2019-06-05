@@ -1,5 +1,5 @@
 import pytest
-from depender.graph import StructureGraph
+from depender.graph.graph import StructureGraph
 
 
 @pytest.fixture

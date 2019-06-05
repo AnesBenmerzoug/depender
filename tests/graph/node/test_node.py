@@ -1,5 +1,5 @@
 import pytest
-from depender.graph import Node
+from depender.graph.node import Node
 import hypothesis.strategies as st
 from hypothesis import given
 

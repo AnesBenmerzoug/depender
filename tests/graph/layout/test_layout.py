@@ -1,5 +1,5 @@
 from depender.graph.layout import layout_structure_graph
-from depender.graph import StructureGraph
+from depender.graph.graph import StructureGraph
 
 
 def test_structure_layout(graph: StructureGraph) -> None:
