@@ -1,9 +1,9 @@
-import os
 import ast
 import importlib
 import importlib.util
+from pathlib import Path
 from depender.graph.graph import Graph
-from depender.utilities.parsing import find_root_package, find_all_package_modules
+from depender.utilities.parsing import find_all_package_modules
 from typing import List, Union
 
 
@@ -11,28 +11,25 @@ class CodeParser:
     def __init__(self) -> None:
         self.graph = Graph()
 
-    def parse_project(self, directory: str,
-                      excluded_directories: List[str],
+    def parse_project(self, package_path: Union[str, Path],
+                      excluded_directories: List[Union[str, Path]],
                       include_external: bool = True,
                       parse_importlib: bool = True,
                       follow_links: bool = True,
                       depth: int = 5) -> Graph:
-        # Remove / if it is at the end of the given directory path
-        if directory.endswith(os.path.sep):
-            directory = directory[:-1]
-        # First traverse the whole directory, up to the given depth, to find the package name
-        # Which should correspond to the first directory that contains an __init__.py file
-        package_name, package_root_path = find_root_package(directory,
-                                                            excluded_directories,
-                                                            depth=depth, followlinks=follow_links)
-        # If the package name was not found return
-        if package_name is None or package_root_path is None:
+        if isinstance(package_path, str):
+            package_path = Path(package_path)
+        # Convert the excluded dirs to Path instances
+        excluded_directories = list(map(lambda x: package_path.joinpath(x).resolve(),
+                                        excluded_directories))
+        # If there is no __init__.py file at the given package path then return an empty graph
+        if not package_path.joinpath("__init__.py").is_file():
             return self.graph
-        # Then traverse the whole directory again, up to the given depth, to find all python modules and files
-        file_list = find_all_package_modules(package_root_path,
-                                             package_name,
-                                             self.graph,
+        package_name = package_path.stem
+        # Traverse the whole directory, up to the given depth, to find all python modules and files
+        file_list = find_all_package_modules(package_path,
                                              excluded_directories,
+                                             self.graph,
                                              depth=depth,
                                              followlinks=follow_links)
         # Finally traverse only the files that were found
@@ -43,12 +40,12 @@ class CodeParser:
         return self.graph
 
     def parse_file(self,
-                   filepath: str,
+                   filepath: Path,
                    module_dot_path: str,
                    package_name: str,
                    include_external: bool,
                    parse_importlib: bool) -> None:
-        with open(filepath, "r") as f:
+        with filepath.open("r") as f:
             module_tree = ast.parse(f.read())
             for node in ast.walk(module_tree):
                 if isinstance(node, ast.Import):
