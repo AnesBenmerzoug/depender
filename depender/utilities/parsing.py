@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from depender.graph.graph import Graph
-from typing import List, Tuple, Iterable, Union
+from typing import List, Tuple, Iterable
 
 
 def find_all_package_modules(package_path: Path,
@@ -21,9 +21,9 @@ def find_all_package_modules(package_path: Path,
             if "__init__.py" in filename.name:
                 continue
             # Form the dot path relative to the package's path
-            module_dot_path = root.relative_to(package_path.parent)
-            module_dot_path = module_dot_path.joinpath(filename.stem)
-            module_dot_path = ".".join(module_dot_path.parts)
+            relative_path = root.relative_to(package_path.parent)
+            relative_path = relative_path.joinpath(filename.stem)
+            module_dot_path = ".".join(relative_path.parts)
             file_list.append((root / filename, module_dot_path))
             graph.add_node(module_dot_path, label=module_dot_path)
     return file_list
