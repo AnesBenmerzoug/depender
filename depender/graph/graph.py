@@ -70,6 +70,12 @@ class Graph:
     def out_degree(self, name: str) -> int:
         return len(self.edges[name])
 
+    def __repr__(self) -> str:
+        representation = "( \n"
+        for source, sink in self.edges_iter():
+            representation += f"{source} ({self.nodes[source].type}) -> {sink} ({self.nodes[sink].type}), \n"
+        representation += ")"
+        return representation
 
 class StructureGraph(Graph):
     def get_node_children(self, node: str) -> List[Node]:
