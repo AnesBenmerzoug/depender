@@ -16,7 +16,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="depender",
-    version="0.1.0",
+    version="0.1.1",
     description="A package that finds the external and internal dependencies in your Python project"
                 "and draws a directed graph and/or matrix to represent them",
     long_description=README,
