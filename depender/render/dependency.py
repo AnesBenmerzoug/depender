@@ -3,6 +3,7 @@ import networkx as nx  # type: ignore
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
+from networkx.drawing.layout import spring_layout
 from networkx.algorithms.planarity import check_planarity
 from networkx.algorithms.planar_drawing import combinatorial_embedding_to_pos
 from depender.render.render import GraphRenderer
@@ -28,8 +29,12 @@ class DependencyRenderer(GraphRenderer):
         is_planar, embedding = check_planarity(nx_graph)
         if is_planar:
             positions = combinatorial_embedding_to_pos(embedding)
-            self.draw_nodes(graph, positions)
-            self.draw_edges(graph, positions)
+        else:
+            positions = spring_layout(nx_graph, k=0.5, iterations=30)
+        self.draw_nodes(graph, positions)
+        self.draw_edges(graph, positions)
+        # Adjust the figure to show everything
+        fig.tight_layout()
         self.show_or_save_figure("dependency_graph")
 
     def render_matrix(self, graph: Graph):
@@ -95,7 +100,8 @@ class DependencyRenderer(GraphRenderer):
         node_scatter = ax.scatter(node_x, node_y,
                                   s=node_sizes,
                                   c=node_colors,
-                                  cmap=cmap)
+                                  cmap=cmap,
+                                  alpha=0.7)
         node_scatter.set_zorder(2)
 
     def draw_edges(self, graph: Graph, positions: dict, ax=None) -> None:
@@ -107,11 +113,14 @@ class DependencyRenderer(GraphRenderer):
         for (source_name, sink_name), (source, sink) in zip(graph.edges_iter(), edge_positions):
             x1, y1 = source
             x2, y2 = sink
-            shrink_sink = np.sqrt(graph.get_node(sink_name).size) / 2
+            edge_start_offset = np.sqrt(graph.get_node(source_name).size) / 2
+            edge_end_offset = np.sqrt(graph.get_node(sink_name).size) / 2
             arrow = FancyArrowPatch((x1, y1), (x2, y2),
                                     arrowstyle="->",
                                     mutation_scale=10,
-                                    shrinkB=shrink_sink,
+                                    shrinkA=edge_start_offset,
+                                    shrinkB=edge_end_offset,
+                                    alpha=0.7,
                                     zorder=1)
             edge_collection.append(arrow)
             ax.add_patch(arrow)
