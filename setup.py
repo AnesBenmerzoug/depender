@@ -5,9 +5,8 @@ install_requires = [
     "click>=4.0",
     "click-spinner>=0.1.0",
     "matplotlib>=3.0.0",
-    "colorlover>=0.3",
     "Jinja2>=2.9",
-    "networkx>=2.3",
+    "networkx[scipy]>=2.3",
     "numpy>=1.15.4",
 ]
 
