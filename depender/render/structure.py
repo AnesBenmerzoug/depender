@@ -11,11 +11,12 @@ from typing import Optional
 
 class StructureRenderer(GraphRenderer):
     def __init__(self, base_width: float = 0.3, base_height: float = 0.2,
-                 base_font_size: float = 6, *args, **kwargs):
+                 base_font_size: float = 4, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.base_width = base_width
         self.base_height = base_height
         self.base_font_size = base_font_size
+        self.cmap = cm.get_cmap("summer")
 
     def show_or_save_figure(self, filename: Optional[str] = None, transparent: bool = True) -> None:
         if self.output_format is None:
@@ -39,32 +40,40 @@ class StructureRenderer(GraphRenderer):
             ax = plt.gca()
         fig = plt.gcf()
         text_boxes = list()
-        coordinate_transformer = ax.transData.inverted()
-        cmap = cm.get_cmap("summer")
+        display_to_data = ax.transData.inverted()
         for node in graph.nodes_iter():
             if node.type == "root":
-                color = cmap(0)
+                color = self.cmap(0.2)
             elif node.type == "directory":
-                color = cmap(0.5)
+                color = self.cmap(0.5)
             else:
-                color = cmap(1.0)
+                color = self.cmap(0.8)
             text_box = ax.text(node.x, node.y, s=node.label,
                                fontsize=self.base_font_size,
                                horizontalalignment="center",
                                verticalalignment="center",
-                               bbox={"facecolor": color},
+                               bbox={"facecolor": color, "alpha": 0.7},
                                zorder=2)
-            fig.canvas.draw()
-            extents = coordinate_transformer.transform(text_box.get_bbox_patch().get_extents())
-            node.width, node.height = extents[1, 0] - extents[0, 0], extents[1, 1] - extents[0, 1]
             text_boxes.append(text_box)
+        fig.canvas.draw()
+        height = None
+        for text_box, node in zip(text_boxes, graph.nodes_iter()):
+            extents = text_box.get_bbox_patch().get_extents().get_points()
+            extents = display_to_data.transform(extents)
+            if height is None:
+                height = extents[1, 1] - extents[0, 1]
+            node.width, node.height = extents[1, 0] - extents[0, 0], height
         layout_structure_graph(graph, 0, 0)
         x, y = zip(*[(node.x, node.y) for node in graph.nodes_iter()])
+        min_x, max_x = min(x), max(x)
+        min_y, max_y = min(y), max(y)
+        for node in graph.nodes_iter():
+            node.x = (node.x - min_x) / (max_x - min_x)
+            node.y = - node.y / min_y + 1
         for text_box, node in zip(text_boxes, graph.nodes_iter()):
             text_box.set_position((node.x, node.y))
-        # ax.set_aspect("equal")
-        ax.set_xlim((min(x), max(x)))
-        ax.set_ylim((min(y), max(y)))
+        ax.set_xlim((0.0, 1.0))
+        ax.set_ylim((-0.1, 1.1))
 
     def render_edges(self, graph: StructureGraph, ax=None) -> None:
         if ax is None:
@@ -73,20 +82,21 @@ class StructureRenderer(GraphRenderer):
         for source, sink in graph.edges_iter():
             source_node = graph.get_node(source)
             sink_node = graph.get_node(sink)
-            start = (source_node.x, source_node.y)
+            start = (source_node.x, source_node.y - source_node.height / 2)
             end = (source_node.x, (source_node.y + sink_node.y) / 2)
             edge_positions += [(start, end)]
             start = end
-            end = (sink_node.x, end[1])
-            edge_positions += [(start, end)]
-            start = end
-            end = (sink_node.x, sink_node.y)
+            if source_node.x != sink_node.x:
+                end = (sink_node.x, end[1])
+                edge_positions += [(start, end)]
+                start = end
+            end = (sink_node.x, sink_node.y + sink_node.height / 2)
             edge_positions += [(start, end)]
 
         edge_positions = list(set(edge_positions))
         edge_positions = np.asarray(edge_positions)
 
-        edge_collection = LineCollection(edge_positions)
+        edge_collection = LineCollection(edge_positions, colors=self.cmap(0))
         edge_collection.set_zorder(1)
         ax.add_collection(edge_collection)
 
