@@ -12,7 +12,7 @@ install_requires = [
 
 HERE = Path(__file__).parent
 
-README = (HERE / "README.md").read_text()
+README = (HERE / "README.rst").read_text()
 
 setup(
     name="depender",
@@ -20,7 +20,7 @@ setup(
     description="A package that finds the external and internal dependencies in your Python project"
                 "and draws a directed graph and/or matrix to represent them",
     long_description=README,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     license="Apache License 2.0",
     classifiers=[
         "Programming Language :: Python :: 3.5",
