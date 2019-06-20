@@ -1,5 +1,6 @@
-tox>=3.9.0
-pytest>=4.4.1
-pytest-cov>=2.6.1
-mypy>=0.701
-hypothesis>=4.0.0
+tox
+pytest
+pytest-cov
+mypy
+hypothesis
+pre-commit
