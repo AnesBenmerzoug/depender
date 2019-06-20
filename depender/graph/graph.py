@@ -77,6 +77,7 @@ class Graph:
         representation += ")"
         return representation
 
+
 class StructureGraph(Graph):
     def get_node_children(self, node: str) -> List[Node]:
         return self.nodes[node].children
@@ -90,8 +91,12 @@ class StructureGraph(Graph):
         self.nodes[sink].index = len(self.edges[source])
         # Add siblings
         if len(self.edges[source]) > 1:
-            self.nodes[sink].leftmost_sibling = self.nodes[next(iter(self.edges[source].keys()))]
-            self.nodes[sink].left_sibling = self.nodes[list(self.edges[source].keys())[-2]]
+            self.nodes[sink].leftmost_sibling = self.nodes[
+                next(iter(self.edges[source].keys()))
+            ]
+            self.nodes[sink].left_sibling = self.nodes[
+                list(self.edges[source].keys())[-2]
+            ]
 
     def remove_edge(self, source: str, sink: str):
         super().remove_edge(source, sink)

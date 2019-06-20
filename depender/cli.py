@@ -9,36 +9,75 @@ from depender.render.structure import StructureRenderer
 from depender.render.dependency import DependencyRenderer
 
 
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"],
-                        ignore_unknown_options=True)
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], ignore_unknown_options=True)
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument("package-name-or-path", nargs=1)
-@click.argument("excluded-dirs", nargs=-1,
-                type=click.Path(exists=False, file_okay=False, resolve_path=False))
-@click.option("-o", "--output-dir", type=click.Path(exists=False, dir_okay=True, resolve_path=True),
-              default="graphs",  show_default=True, help="Output directory")
-@click.option("-fmt", "--format", type=click.STRING,
-              default=None, show_default=True, help="Output format, if specified the graph will be rendered to a file"
-                                                    " with the given format")
-@click.option("--dims", "--image-dimensions", type=click.STRING,
-              default="800,600", show_default=True, help="Dimensions of the rendered graphs given as 'width,height'")
-@click.option("--include-external", type=click.BOOL, default=False, is_flag=True,
-              show_default=True, help="When set, external packages are included in the graphs")
-@click.option("--no-follow-links", type=click.BOOL, default=False, is_flag=True,
-              show_default=True, help="When set the script visits directories pointed to by symlinks")
-@click.option("--depth", type=click.INT, default=6,
-              show_default=True, help="Depth of the directory recursion")
+@click.argument(
+    "excluded-dirs",
+    nargs=-1,
+    type=click.Path(exists=False, file_okay=False, resolve_path=False),
+)
+@click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(exists=False, dir_okay=True, resolve_path=True),
+    default="graphs",
+    show_default=True,
+    help="Output directory",
+)
+@click.option(
+    "-fmt",
+    "--format",
+    type=click.STRING,
+    default=None,
+    show_default=True,
+    help="Output format, if specified the graph will be rendered to a file"
+    " with the given format",
+)
+@click.option(
+    "--dims",
+    "--image-dimensions",
+    type=click.STRING,
+    default="800,600",
+    show_default=True,
+    help="Dimensions of the rendered graphs given as 'width,height'",
+)
+@click.option(
+    "--include-external",
+    type=click.BOOL,
+    default=False,
+    is_flag=True,
+    show_default=True,
+    help="When set, external packages are included in the graphs",
+)
+@click.option(
+    "--no-follow-links",
+    type=click.BOOL,
+    default=False,
+    is_flag=True,
+    show_default=True,
+    help="When set the script visits directories pointed to by symlinks",
+)
+@click.option(
+    "--depth",
+    type=click.INT,
+    default=6,
+    show_default=True,
+    help="Depth of the directory recursion",
+)
 @click.version_option()
-def main(package_name_or_path: str,
-         excluded_dirs: List[str],
-         output_dir: str,
-         format: str,
-         image_dimensions: str,
-         include_external: bool,
-         no_follow_links: bool,
-         depth: int) -> None:
+def main(
+    package_name_or_path: str,
+    excluded_dirs: List[str],
+    output_dir: str,
+    format: str,
+    image_dimensions: str,
+    include_external: bool,
+    no_follow_links: bool,
+    depth: int,
+) -> None:
     r"""Depender command line interface
 
     Create a dependency graph, a dependency matrix and/or a directory structure graph for a given Python package.
@@ -67,26 +106,32 @@ def main(package_name_or_path: str,
     code_parser = CodeParser()
     structure_parser = StructureParser()
     # Instantiate the Graph renderers
-    structure_renderer = StructureRenderer(output_dir=output_dir,
-                                           output_format=format,
-                                           figure_dimensions=(image_width,
-                                                              image_height))
-    dependency_renderer = DependencyRenderer(output_dir=output_dir,
-                                             output_format=format,
-                                             figure_dimensions=(image_width,
-                                                                image_height))
+    structure_renderer = StructureRenderer(
+        output_dir=output_dir,
+        output_format=format,
+        figure_dimensions=(image_width, image_height),
+    )
+    dependency_renderer = DependencyRenderer(
+        output_dir=output_dir,
+        output_format=format,
+        figure_dimensions=(image_width, image_height),
+    )
     # Parse the package
     click.echo("Parsing package...")
     with spinner():
-        code_graph = code_parser.parse_project(package_path=package_path,
-                                               excluded_directories=excluded_dirs,
-                                               include_external=include_external,
-                                               follow_links=not no_follow_links,
-                                               depth=depth)
-        structure_graph = structure_parser.parse_project(package_path=package_path,
-                                                         excluded_directories=excluded_dirs,
-                                                         follow_links=not no_follow_links,
-                                                         depth=depth)
+        code_graph = code_parser.parse_project(
+            package_path=package_path,
+            excluded_directories=excluded_dirs,
+            include_external=include_external,
+            follow_links=not no_follow_links,
+            depth=depth,
+        )
+        structure_graph = structure_parser.parse_project(
+            package_path=package_path,
+            excluded_directories=excluded_dirs,
+            follow_links=not no_follow_links,
+            depth=depth,
+        )
 
     # Layout and write to file
     click.echo("Plotting graphs...")

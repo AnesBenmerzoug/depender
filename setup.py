@@ -18,7 +18,7 @@ setup(
     name="depender",
     version="0.1.1",
     description="A package that finds the external and internal dependencies in your Python project"
-                "and draws a directed graph and/or matrix to represent them",
+    "and draws a directed graph and/or matrix to represent them",
     long_description=README,
     long_description_content_type="text/x-rst",
     license="Apache License 2.0",
@@ -35,7 +35,5 @@ setup(
     install_requires=install_requires,
     include_package_data=True,
     packages=find_packages(exclude=["tests", "docs"]),
-    entry_points={
-        "console_scripts": ["depender=depender.cli:main"],
-    }
+    entry_points={"console_scripts": ["depender=depender.cli:main"]},
 )

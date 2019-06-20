@@ -4,8 +4,13 @@ from typing import Optional, Tuple
 
 
 class GraphRenderer(ABC):
-    def __init__(self, output_dir: str, output_format: Optional[str] = None,
-                 figure_dimensions: Tuple[float, float] = (1280, 960), dpi: int = 100) -> None:
+    def __init__(
+        self,
+        output_dir: str,
+        output_format: Optional[str] = None,
+        figure_dimensions: Tuple[float, float] = (1280, 960),
+        dpi: int = 100,
+    ) -> None:
         self.output_dir = output_dir
         self.output_format = output_format
         self.figure_dimensions = figure_dimensions

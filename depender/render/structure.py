@@ -10,26 +10,38 @@ from typing import Optional
 
 
 class StructureRenderer(GraphRenderer):
-    def __init__(self, base_width: float = 0.3, base_height: float = 0.2,
-                 base_font_size: float = 4, *args, **kwargs):
+    def __init__(
+        self,
+        base_width: float = 0.3,
+        base_height: float = 0.2,
+        base_font_size: float = 4,
+        *args,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.base_width = base_width
         self.base_height = base_height
         self.base_font_size = base_font_size
         self.cmap = cm.get_cmap("summer")
 
-    def show_or_save_figure(self, filename: Optional[str] = None, transparent: bool = True) -> None:
+    def show_or_save_figure(
+        self, filename: Optional[str] = None, transparent: bool = True
+    ) -> None:
         if self.output_format is None:
             plt.show()
         else:
             output_path = Path(self.output_dir, filename + "." + self.output_format)
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(output_path, dpi=self.dpi*10, transparent=transparent)
+            plt.savefig(output_path, dpi=self.dpi * 10, transparent=transparent)
 
     def render_graph(self, graph: StructureGraph) -> None:
-        fig, ax = plt.subplots(figsize=(self.figure_dimensions[0]/self.dpi,
-                                        self.figure_dimensions[1]/self.dpi),
-                               dpi=self.dpi)
+        fig, ax = plt.subplots(
+            figsize=(
+                self.figure_dimensions[0] / self.dpi,
+                self.figure_dimensions[1] / self.dpi,
+            ),
+            dpi=self.dpi,
+        )
         ax.axis("off")
         self.render_nodes(graph)
         self.render_edges(graph)
@@ -48,12 +60,16 @@ class StructureRenderer(GraphRenderer):
                 color = self.cmap(0.5)
             else:
                 color = self.cmap(0.8)
-            text_box = ax.text(node.x, node.y, s=node.label,
-                               fontsize=self.base_font_size,
-                               horizontalalignment="center",
-                               verticalalignment="center",
-                               bbox={"facecolor": color, "alpha": 0.7},
-                               zorder=2)
+            text_box = ax.text(
+                node.x,
+                node.y,
+                s=node.label,
+                fontsize=self.base_font_size,
+                horizontalalignment="center",
+                verticalalignment="center",
+                bbox={"facecolor": color, "alpha": 0.7},
+                zorder=2,
+            )
             text_boxes.append(text_box)
         fig.canvas.draw()
         height = None
@@ -66,10 +82,10 @@ class StructureRenderer(GraphRenderer):
         layout_structure_graph(graph, 0, 0)
         x, y = zip(*[(node.x, node.y) for node in graph.nodes_iter()])
         min_x, max_x = min(x), max(x)
-        min_y, max_y = min(y), max(y)
+        min_y = min(y)
         for node in graph.nodes_iter():
             node.x = (node.x - min_x) / (max_x - min_x)
-            node.y = - node.y / min_y + 1
+            node.y = -node.y / min_y + 1
         for text_box, node in zip(text_boxes, graph.nodes_iter()):
             text_box.set_position((node.x, node.y))
         ax.set_xlim((0.0, 1.0))
@@ -99,7 +115,3 @@ class StructureRenderer(GraphRenderer):
         edge_collection = LineCollection(edge_positions, colors=self.cmap(0))
         edge_collection.set_zorder(1)
         ax.add_collection(edge_collection)
-
-
-
-

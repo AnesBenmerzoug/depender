@@ -12,7 +12,9 @@ from typing import Optional
 
 
 class DependencyRenderer(GraphRenderer):
-    def show_or_save_figure(self, filename: Optional[str] = None, transparent: bool = True) -> None:
+    def show_or_save_figure(
+        self, filename: Optional[str] = None, transparent: bool = True
+    ) -> None:
         if self.output_format is None:
             plt.show()
         else:
@@ -21,9 +23,13 @@ class DependencyRenderer(GraphRenderer):
             plt.savefig(output_path, dpi=self.dpi, transparent=transparent)
 
     def render_graph(self, graph: Graph) -> None:
-        fig, ax = plt.subplots(figsize=(self.figure_dimensions[0]/self.dpi,
-                                        self.figure_dimensions[1]/self.dpi),
-                               dpi=self.dpi)
+        fig, ax = plt.subplots(
+            figsize=(
+                self.figure_dimensions[0] / self.dpi,
+                self.figure_dimensions[1] / self.dpi,
+            ),
+            dpi=self.dpi,
+        )
         ax.axis("off")
         nx_graph = nx.DiGraph(graph.edges)
         is_planar, embedding = check_planarity(nx_graph)
@@ -38,9 +44,13 @@ class DependencyRenderer(GraphRenderer):
         self.show_or_save_figure("dependency_graph")
 
     def render_matrix(self, graph: Graph):
-        fig, ax = plt.subplots(figsize=(self.figure_dimensions[0]/self.dpi,
-                                        self.figure_dimensions[1]/self.dpi),
-                               dpi=self.dpi)
+        fig, ax = plt.subplots(
+            figsize=(
+                self.figure_dimensions[0] / self.dpi,
+                self.figure_dimensions[1] / self.dpi,
+            ),
+            dpi=self.dpi,
+        )
         node_names = graph.get_all_node_names()
         node_count = graph.node_count()
 
@@ -53,11 +63,7 @@ class DependencyRenderer(GraphRenderer):
             # matrix[graph.get_node(sink).index, graph.get_node(source).index] -= 1
 
         cmap = plt.get_cmap("coolwarm")
-        ax.matshow(matrix,
-                   cmap=cmap,
-                   aspect="equal",
-                   origin="upper",
-                   alpha=0.7)
+        ax.matshow(matrix, cmap=cmap, aspect="equal", origin="upper", alpha=0.7)
         # Major ticks
         major_tick_locations = np.arange(node_count)
         ax.set_xticks(major_tick_locations)
@@ -75,7 +81,12 @@ class DependencyRenderer(GraphRenderer):
         ax.grid(which="minor", color="w", linestyle="-", linewidth=3)
         # Tick parameters and label rotation
         ax.tick_params(axis="both", which="both", length=0, width=0)
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=60, ha="left", rotation_mode="anchor")
+        plt.setp(
+            ax.xaxis.get_majorticklabels(),
+            rotation=60,
+            ha="left",
+            rotation_mode="anchor",
+        )
         # Adjust the figure to show everything
         fig.tight_layout()
         self.show_or_save_figure("dependency_matrix")
@@ -97,31 +108,35 @@ class DependencyRenderer(GraphRenderer):
             graph.get_node(node).size = node_size
 
         cmap = plt.get_cmap("coolwarm")
-        node_scatter = ax.scatter(node_x, node_y,
-                                  s=node_sizes,
-                                  c=node_colors,
-                                  cmap=cmap,
-                                  alpha=0.7)
+        node_scatter = ax.scatter(
+            node_x, node_y, s=node_sizes, c=node_colors, cmap=cmap, alpha=0.7
+        )
         node_scatter.set_zorder(2)
 
     def draw_edges(self, graph: Graph, positions: dict, ax=None) -> None:
         if ax is None:
             ax = plt.gca()
-        edge_positions = [(positions[e[0]], positions[e[1]]) for e in graph.edges_iter()]
+        edge_positions = [
+            (positions[e[0]], positions[e[1]]) for e in graph.edges_iter()
+        ]
         edge_positions = np.asarray(edge_positions)
         edge_collection = list()
-        for (source_name, sink_name), (source, sink) in zip(graph.edges_iter(), edge_positions):
+        for (source_name, sink_name), (source, sink) in zip(
+            graph.edges_iter(), edge_positions
+        ):
             x1, y1 = source
             x2, y2 = sink
             edge_start_offset = np.sqrt(graph.get_node(source_name).size) / 2
             edge_end_offset = np.sqrt(graph.get_node(sink_name).size) / 2
-            arrow = FancyArrowPatch((x1, y1), (x2, y2),
-                                    arrowstyle="->",
-                                    mutation_scale=10,
-                                    shrinkA=edge_start_offset,
-                                    shrinkB=edge_end_offset,
-                                    alpha=0.7,
-                                    zorder=1)
+            arrow = FancyArrowPatch(
+                (x1, y1),
+                (x2, y2),
+                arrowstyle="->",
+                mutation_scale=10,
+                shrinkA=edge_start_offset,
+                shrinkB=edge_end_offset,
+                alpha=0.7,
+                zorder=1,
+            )
             edge_collection.append(arrow)
             ax.add_patch(arrow)
-

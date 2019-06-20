@@ -5,9 +5,25 @@ Attribute_Type = Optional[Union[str, float, "Node"]]
 
 
 class Node:
-    NodeProperties = ["name", "label", "x", "y", "size", "width", "height", "index", "change",
-                      "shift", "modifier", "thread", "parent", "ancestor",
-                      "leftmost_sibling", "left_sibling", "right_sibling"]
+    NodeProperties = [
+        "name",
+        "label",
+        "x",
+        "y",
+        "size",
+        "width",
+        "height",
+        "index",
+        "change",
+        "shift",
+        "modifier",
+        "thread",
+        "parent",
+        "ancestor",
+        "leftmost_sibling",
+        "left_sibling",
+        "right_sibling",
+    ]
 
     def __init__(self, name: str, **kwargs: Attribute_Type) -> None:
         self.name = name  # type: str
@@ -38,7 +54,7 @@ class Node:
         setattr(self, key, value)
 
     def __repr__(self):
-        return f"(Name: '{self.name}', Label: '{self.label}', \n" \
+        return (
+            f"(Name: '{self.name}', Label: '{self.label}', \n"
             f"X: '{self.x}', Y: '{self.y}', Width: '{self.width}', Height: '{self.height}')"
-
-
+        )

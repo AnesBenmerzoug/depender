@@ -3,18 +3,18 @@ from depender.graph.graph import StructureGraph
 from typing import Optional
 
 
-def layout_structure_graph(graph: StructureGraph,
-                           base_distance_x: float = 1.0,
-                           base_distance_y: float = 1.0) -> None:
+def layout_structure_graph(
+    graph: StructureGraph, base_distance_x: float = 1.0, base_distance_y: float = 1.0
+) -> None:
     r"""Layout the structure graph using a modified version of Buchheim's algorithm
-    that takes into account the width and height of the nodes which are proportional 
+    that takes into account the width and height of the nodes which are proportional
     to the length of the nodes' labels and to the font size
 
     Args:
         graph: Graph object that represents the structure graph
         base_distance_x: Base horizontal step size which when multiplied by the node's label length
             gives the actual horizontal step size.
-        base_distance_y: Base vertical step size which is used to determine a node's height 
+        base_distance_y: Base vertical step size which is used to determine a node's height
             and the distance between levels in the graph
     """
     root_node = graph.get_root_node()
@@ -38,9 +38,11 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
     children_count = len(children)
     if children_count == 0:
         if current_node.left_sibling:
-            current_node.x = current_node.left_sibling.x \
-                + (current_node.left_sibling.width + current_node.width) / 2 \
+            current_node.x = (
+                current_node.left_sibling.x
+                + (current_node.left_sibling.width + current_node.width) / 2
                 + base_distance
+            )
         else:
             current_node.x = 0
     else:
@@ -60,18 +62,19 @@ def first_walk(current_node: Node, base_distance: float = 1.0) -> None:
         # then assign the midpoint coordinate to it, else shift from its left sibling
         # and compute the modifier value
         if current_node.left_sibling:
-            current_node.x = current_node.left_sibling.x \
-                    + (current_node.left_sibling.width + current_node.width) / 2 \
-                    + base_distance
+            current_node.x = (
+                current_node.left_sibling.x
+                + (current_node.left_sibling.width + current_node.width) / 2
+                + base_distance
+            )
             current_node.modifier = current_node.x - midpoint
         else:
             current_node.x = midpoint
 
 
-def second_walk(current_node: Node, 
-                modifier: float = 0, 
-                depth: int = 0, 
-                base_distance: float = 1):
+def second_walk(
+    current_node: Node, modifier: float = 0, depth: int = 0, base_distance: float = 1
+):
     r"""Second part of Buchheim's algorithm.
     The tree is traversed in a top down manner.
 
@@ -93,10 +96,10 @@ def second_walk(current_node: Node,
 
 def apportion(current_node: Node, default_ancestor: Node, base_distance: float) -> Node:
     r"""
-    
+
     Args:
-        current_node: 
-        default_ancestor: 
+        current_node:
+        default_ancestor:
         base_distance: Base horizontal distance between sibling nodes
 
     Returns:
@@ -117,16 +120,24 @@ def apportion(current_node: Node, default_ancestor: Node, base_distance: float) 
         next_inner_right = next_left(v_inner_right)
         next_outer_left = next_left(v_outer_left)
         next_outer_right = next_right(v_outer_right)
-        while next_inner_left and next_inner_right and next_outer_right and next_outer_left:
+        while (
+            next_inner_left
+            and next_inner_right
+            and next_outer_right
+            and next_outer_left
+        ):
             v_inner_left = next_inner_left
             v_inner_right = next_inner_right
             v_outer_left = next_outer_left
             v_outer_right = next_outer_right
             v_outer_right.ancestor = current_node
             # shift = (v_inner_left.x + sil) - (v_inner_right.x + sir)
-            shift = (v_inner_left.x + sil) - (v_inner_right.x + sir) \
-                + (v_inner_left.width + v_inner_right.width) / 2 \
+            shift = (
+                (v_inner_left.x + sil)
+                - (v_inner_right.x + sir)
+                + (v_inner_left.width + v_inner_right.width) / 2
                 + base_distance
+            )
             if shift > 0:
                 a = ancestor(v_inner_left, current_node, default_ancestor)
                 move_subtree(a, current_node, shift)
@@ -222,5 +233,3 @@ def ancestor(node_1: Node, node_2: Node, default_ancestor: Node) -> Node:
         if node_1.ancestor in node_2.parent.children:
             return node_1.ancestor
     return default_ancestor
-
-

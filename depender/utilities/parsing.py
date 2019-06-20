@@ -4,15 +4,17 @@ from depender.graph.graph import Graph
 from typing import List, Tuple, Iterable
 
 
-def find_all_package_modules(package_path: Path,
-                             excluded_directories: List[Path],
-                             graph: Graph,
-                             depth: int,
-                             followlinks: bool):
+def find_all_package_modules(
+    package_path: Path,
+    excluded_directories: List[Path],
+    graph: Graph,
+    depth: int,
+    followlinks: bool,
+):
     file_list = list()
-    for root, dirs, files in traverse_directory(package_path,
-                                                excluded_directories,
-                                                depth=depth, followlinks=followlinks):
+    for root, dirs, files in traverse_directory(
+        package_path, excluded_directories, depth=depth, followlinks=followlinks
+    ):
         for filename in files:
             # Skip non python files
             if not ".py" == filename.suffix:
@@ -29,11 +31,13 @@ def find_all_package_modules(package_path: Path,
     return file_list
 
 
-def traverse_directory(directory: Path,
-                       excluded_directories: List[Path],
-                       depth: int,
-                       followlinks: bool,
-                       breadth_first: bool = False) -> Iterable[Tuple[Path, List[Path], List[Path]]]:
+def traverse_directory(
+    directory: Path,
+    excluded_directories: List[Path],
+    depth: int,
+    followlinks: bool,
+    breadth_first: bool = False,
+) -> Iterable[Tuple[Path, List[Path], List[Path]]]:
     root_depth = len(directory.parents)
     dirlist = list()
     for root, dirs, files in os.walk(directory, followlinks=followlinks):
