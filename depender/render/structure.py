@@ -1,12 +1,13 @@
-import numpy as np
 from pathlib import Path
-from matplotlib import cm
+from typing import Optional
+
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
+import numpy as np
+from depender.graph.graph import StructureGraph
 from depender.graph.layout import layout_structure_graph
 from depender.render.render import GraphRenderer
-from depender.graph.graph import StructureGraph
-from typing import Optional
+from matplotlib import cm
+from matplotlib.collections import LineCollection
 
 
 class StructureRenderer(GraphRenderer):

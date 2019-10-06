@@ -1,7 +1,8 @@
 from pathlib import Path
+from typing import List, Union
+
 from depender.graph.graph import StructureGraph
 from depender.utilities.parsing import traverse_directory
-from typing import List, Union
 
 
 class StructureParser:

@@ -1,6 +1,6 @@
+import hypothesis.strategies as st
 import pytest
 from depender.graph.graph import Graph
-import hypothesis.strategies as st
 from hypothesis import given
 
 

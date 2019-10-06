@@ -1,6 +1,7 @@
-from depender.graph.node import Node
-from depender.graph.graph import StructureGraph
 from typing import Optional
+
+from depender.graph.graph import StructureGraph
+from depender.graph.node import Node
 
 
 def layout_structure_graph(

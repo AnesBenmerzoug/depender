@@ -1,5 +1,4 @@
-from typing import List, Union, Optional
-
+from typing import List, Optional, Union
 
 Attribute_Type = Optional[Union[str, float, "Node"]]
 

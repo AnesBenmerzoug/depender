@@ -1,14 +1,15 @@
-import numpy as np
-import networkx as nx  # type: ignore
 from pathlib import Path
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
-from networkx.drawing.layout import spring_layout
-from networkx.algorithms.planarity import check_planarity
-from networkx.algorithms.planar_drawing import combinatorial_embedding_to_pos
-from depender.render.render import GraphRenderer
-from depender.graph.graph import Graph
 from typing import Optional
+
+import matplotlib.pyplot as plt
+import networkx as nx  # type: ignore
+import numpy as np
+from depender.graph.graph import Graph
+from depender.render.render import GraphRenderer
+from matplotlib.patches import FancyArrowPatch
+from networkx.algorithms.planar_drawing import combinatorial_embedding_to_pos
+from networkx.algorithms.planarity import check_planarity
+from networkx.drawing.layout import spring_layout
 
 
 class DependencyRenderer(GraphRenderer):
