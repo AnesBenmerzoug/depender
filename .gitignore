@@ -9,3 +9,4 @@ graphs
 .hypothesis
 build
 dist
+venv

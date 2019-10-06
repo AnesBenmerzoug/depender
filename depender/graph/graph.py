@@ -1,7 +1,8 @@
-from functools import partial
 from collections import defaultdict
+from functools import partial
+from typing import Dict, Iterable, List, Tuple, Union
+
 from depender.graph.node import Node
-from typing import Dict, List, Iterable, Union, Tuple
 
 
 class Graph:

@@ -1,13 +1,13 @@
-import click
-from typing import List
-from pathlib import Path
 from importlib.util import find_spec
+from pathlib import Path
+from typing import List
+
+import click
 from click_spinner import spinner  # type: ignore
 from depender.parsers.code import CodeParser
 from depender.parsers.structure import StructureParser
-from depender.render.structure import StructureRenderer
 from depender.render.dependency import DependencyRenderer
-
+from depender.render.structure import StructureRenderer
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], ignore_unknown_options=True)
 

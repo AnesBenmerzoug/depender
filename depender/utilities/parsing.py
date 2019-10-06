@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
+from typing import Iterable, List, Tuple
+
 from depender.graph.graph import Graph
-from typing import List, Tuple, Iterable
 
 
 def find_all_package_modules(

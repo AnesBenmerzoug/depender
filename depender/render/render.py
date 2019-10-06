@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from jinja2 import Environment, PackageLoader
 from typing import Optional, Tuple
+
+from jinja2 import Environment, PackageLoader
 
 
 class GraphRenderer(ABC):

@@ -2,9 +2,10 @@ import ast
 import importlib
 import importlib.util
 from pathlib import Path
+from typing import List, Union
+
 from depender.graph.graph import Graph
 from depender.utilities.parsing import find_all_package_modules
-from typing import List, Union
 
 
 class CodeParser:

@@ -1,8 +1,9 @@
-from setuptools import setup, find_packages
 from pathlib import Path
 
+from setuptools import find_packages, setup
+
 install_requires = [
-    "click>=4.0",
+    "click>=4.0,<7.0",
     "click-spinner>=0.1.0",
     "matplotlib>=3.0.0",
     "Jinja2>=2.9",
