@@ -1,6 +1,0 @@
-tox
-pytest
-pytest-cov
-mypy
-hypothesis
-pre-commit
