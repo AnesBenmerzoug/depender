@@ -32,10 +32,11 @@ Requirements
 
 Depender requires Python 3.5+
 
+Use :code:`pip3` instead of :code:`pip` if the default python version of your system is 2.7 or older.
+
+
 Install latest release
 ----------------------
-
-Using pip:
 
 .. code-block::
 
@@ -48,6 +49,7 @@ Install from source
 
     git clone https://github.com/AnesBenmerzoug/depender
     pip install .
+
 
 *****
 Usage
