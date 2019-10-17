@@ -1,3 +1,4 @@
+import sys
 from importlib.util import find_spec
 from pathlib import Path
 from typing import List
@@ -13,7 +14,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], ignore_unknown_optio
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.argument("package-name-or-path", nargs=1)
+@click.argument("path-or-name", nargs=1)
 @click.argument(
     "excluded-dirs",
     nargs=-1,
@@ -69,7 +70,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], ignore_unknown_optio
 )
 @click.version_option()
 def main(
-    package_name_or_path: str,
+    path_or_name: str,
     excluded_dirs: List[str],
     output_dir: str,
     format: str,
@@ -82,24 +83,37 @@ def main(
 
     Create a dependency graph, a dependency matrix and/or a directory structure graph for a given Python package.
 
-    PROJECT_PATH should be the path (relative or absolute) to the root of the Python package.
+    PATH_OR_NAME should be either:
+        - the path (relative or absolute) to the root of a Python package or module
+        - the name of an installed package
 
-    EXCLUDED_DIRS should be, if provided, the name of or more directories in the package to be excluded from the graph.
+    EXCLUDED_DIRS should be, if provided, the paths relative to the package of one or more directories
+    to exclude from the graph.
     """
     # Try to find the package path
-    spec = find_spec(package_name_or_path)
+    try:
+        spec = find_spec(path_or_name)
+    except ModuleNotFoundError:
+        spec = None
     if spec is not None:
-        click.echo(f"Found package {package_name_or_path}")
-        package_path = Path(spec.origin).parent
-    else:
-        package_path = Path(package_name_or_path)
-        if not package_path.is_dir():
-            raise NotADirectoryError("")
-        elif not package_path.joinpath("__init__.py").is_file():
-            raise Exception("The given path is not a Python package")
+        click.echo(f"Found package '{path_or_name}'")
+        package_path = Path(spec.origin)
+        if package_path.name == "__init__.py":
+            package_path = package_path.parent
+            is_module = False
         else:
-            click.echo(f"Found package at location {package_name_or_path}")
-        package_path = package_path.stem
+            is_module = True
+    else:
+        package_path = Path(path_or_name)
+        if package_path.is_file() and package_path.suffix == ".py":
+            click.echo(f"Found module '{package_path.stem}' at '{package_path}'")
+            is_module = True
+        elif package_path.is_dir() and package_path.joinpath("__init__.py").is_file():
+            click.echo(f"Found package '{package_path.stem}' at '{package_path}'")
+            is_module = False
+        else:
+            click.echo(f"Could not find a package or a module at '{package_path}'")
+            sys.exit(1)
     # Get the desired image dimensions
     image_width, image_height = map(int, image_dimensions.split(","))
     # Instantiate the parsers
@@ -121,6 +135,7 @@ def main(
     with spinner():
         code_graph = code_parser.parse_project(
             package_path=package_path,
+            is_module=is_module,
             excluded_directories=excluded_dirs,
             include_external=include_external,
             follow_links=not no_follow_links,
