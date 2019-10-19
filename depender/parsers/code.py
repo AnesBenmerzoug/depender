@@ -15,6 +15,7 @@ class CodeParser:
     def parse_project(
         self,
         package_path: Union[str, Path],
+        is_module: bool,
         excluded_directories: List[Union[str, Path]],
         include_external: bool = True,
         parse_importlib: bool = True,
@@ -27,18 +28,20 @@ class CodeParser:
         excluded_directories = list(
             map(lambda x: package_path.joinpath(x).resolve(), excluded_directories)
         )
-        # If there is no __init__.py file at the given package path then return an empty graph
-        if not package_path.joinpath("__init__.py").is_file():
-            return self.graph
+
         package_name = package_path.stem
-        # Traverse the whole directory, up to the given depth, to find all python modules and files
-        file_list = find_all_package_modules(
-            package_path,
-            excluded_directories,
-            self.graph,
-            depth=depth,
-            followlinks=follow_links,
-        )
+
+        if is_module:
+            file_list = [(package_path, package_name)]
+        else:
+            # Traverse the whole directory, up to the given depth, to find all python modules and files
+            file_list = find_all_package_modules(
+                package_path,
+                excluded_directories,
+                self.graph,
+                depth=depth,
+                followlinks=follow_links,
+            )
         # Finally traverse only the files that were found
         for filepath, module_dot_path in file_list:
             self.parse_file(
