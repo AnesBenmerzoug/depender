@@ -2,14 +2,8 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-install_requires = [
-    "click>=4.0,<7.0",
-    "click-spinner>=0.1.0",
-    "matplotlib>=3.0.0",
-    "Jinja2>=2.9",
-    "networkx[scipy]>=2.3",
-    "numpy>=1.15.4",
-]
+install_requires = open("requirements.txt").read()
+
 
 HERE = Path(__file__).parent
 
