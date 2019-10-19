@@ -90,30 +90,30 @@ def main(
     EXCLUDED_DIRS should be, if provided, the paths relative to the package of one or more directories
     to exclude from the graph.
     """
-    # Try to find the package path
     try:
         spec = find_spec(path_or_name)
     except ModuleNotFoundError:
         spec = None
-    if spec is not None:
-        click.echo(f"Found package '{path_or_name}'")
+    # Try to find the package path
+    package_path = Path(path_or_name)
+    if package_path.is_file() and package_path.suffix == ".py":
+        click.echo(f"Found module at '{package_path.absolute()}'")
+        is_module = True
+    elif package_path.is_dir() and package_path.joinpath("__init__.py").is_file():
+        click.echo(f"Found package at '{package_path.absolute()}'")
+        is_module = False
+    elif spec is not None:
         package_path = Path(spec.origin)
         if package_path.name == "__init__.py":
+            click.echo(f"Found package '{path_or_name}'")
             package_path = package_path.parent
             is_module = False
         else:
+            click.echo(f"Found module '{path_or_name}'")
             is_module = True
     else:
-        package_path = Path(path_or_name)
-        if package_path.is_file() and package_path.suffix == ".py":
-            click.echo(f"Found module '{package_path.stem}' at '{package_path}'")
-            is_module = True
-        elif package_path.is_dir() and package_path.joinpath("__init__.py").is_file():
-            click.echo(f"Found package '{package_path.stem}' at '{package_path}'")
-            is_module = False
-        else:
-            click.echo(f"Could not find a package or a module at '{package_path}'")
-            sys.exit(1)
+        click.echo(f"Could not find a package or a module at '{package_path}'")
+        sys.exit(1)
     # Get the desired image dimensions
     image_width, image_height = map(int, image_dimensions.split(","))
     # Instantiate the parsers
