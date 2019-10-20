@@ -2,35 +2,6 @@ import os
 from pathlib import Path
 from typing import Iterable, List, Tuple
 
-from depender.graph.graph import Graph
-
-
-def find_all_package_modules(
-    package_path: Path,
-    excluded_directories: List[Path],
-    graph: Graph,
-    depth: int,
-    followlinks: bool,
-):
-    file_list = list()
-    for root, dirs, files in traverse_directory(
-        package_path, excluded_directories, depth=depth, followlinks=followlinks
-    ):
-        for filename in files:
-            # Skip non python files
-            if not ".py" == filename.suffix:
-                continue
-            # Skip  __init__.py files
-            if "__init__.py" in filename.name:
-                continue
-            # Form the dot path relative to the package's path
-            relative_path = root.relative_to(package_path.parent)
-            relative_path = relative_path.joinpath(filename.stem)
-            module_dot_path = ".".join(relative_path.parts)
-            file_list.append((root / filename, module_dot_path))
-            graph.add_node(module_dot_path, label=module_dot_path)
-    return file_list
-
 
 def traverse_directory(
     directory: Path,
@@ -41,8 +12,9 @@ def traverse_directory(
 ) -> Iterable[Tuple[Path, List[Path], List[Path]]]:
     root_depth = len(directory.parents)
     dirlist = list()
-    for root, dirs, files in os.walk(directory, followlinks=followlinks):
-        root = Path(root)
+
+    for root, dirs, files in os.walk(directory.resolve(), followlinks=followlinks):
+        root = Path(root).resolve()
         # Check to see if there are user specified directories that should be skipped
         if check_if_skip_directory(root, excluded_directories):
             continue

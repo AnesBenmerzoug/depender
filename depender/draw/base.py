@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 
-from jinja2 import Environment, PackageLoader
+from depender.graph.dependency import DependencyGraph
+from depender.graph.structure import StructureGraph
 
 
-class GraphRenderer(ABC):
+class BaseGraphPlot(ABC):
     def __init__(
         self,
         output_dir: str,
@@ -16,13 +17,15 @@ class GraphRenderer(ABC):
         self.output_format = output_format
         self.figure_dimensions = figure_dimensions
         self.dpi = dpi
-        jinja_environment = Environment(loader=PackageLoader("depender", "templates"))
-        self.template = jinja_environment.get_template("template.html")
 
     @abstractmethod
-    def render_graph(self, graph) -> None:
+    def plot_dependency_matrix(self, graph: DependencyGraph, **kwargs) -> None:
         raise NotImplementedError
 
     @abstractmethod
-    def show_or_save_figure(self, filename: Optional[str] = None) -> None:
+    def plot_dependency_graph(self, graph: DependencyGraph, **kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
+    def plot_structure_graph(self, graph: StructureGraph, **kwargs):
         raise NotImplementedError
