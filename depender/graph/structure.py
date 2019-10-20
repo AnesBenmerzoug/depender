@@ -1,6 +1,5 @@
 from typing import List
 
-from loguru import logger
 from networkx import DiGraph
 
 __all__ = ["StructureGraph"]
@@ -51,13 +50,10 @@ class StructureGraph(DiGraph):
         base_distance_y = kwargs.pop("base_distance_y", 1.0)
         root_node = self.root_node
         if root_node is not None:
-            with logger.catch(reraise=True):
-                self._first_walk(root_node, base_distance=base_distance_x)
-                self._second_walk(
-                    root_node,
-                    -self.nodes[root_node]["x"],
-                    base_distance=base_distance_y,
-                )
+            self._first_walk(root_node, base_distance=base_distance_x)
+            self._second_walk(
+                root_node, -self.nodes[root_node]["x"], base_distance=base_distance_y
+            )
 
     def _first_walk(self, current_node: str, base_distance: float = 1.0):
         # Get the current node's children and count them
