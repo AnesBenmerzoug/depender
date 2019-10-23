@@ -1,33 +1,41 @@
-from typing import List
-
 from networkx import DiGraph
 
 __all__ = ["StructureGraph"]
 
 
 class StructureGraph(DiGraph):
-    def children(self, node: str) -> List[str]:
-        return list(self.successors(node))
-
     def add_node(self, node_for_adding, **attr):
-        super().add_node(node_for_adding, **attr)
+        properties = {}
         # Initial properties that are needed for the structure graph
-        self.nodes[node_for_adding]["children"] = []
-        self.nodes[node_for_adding]["parent"] = None
-        self.nodes[node_for_adding]["ancestor"] = None
-        self.nodes[node_for_adding]["leftmost_sibling"] = None
-        self.nodes[node_for_adding]["left_sibling"] = None
-        self.nodes[node_for_adding]["thread"] = None
-        self.nodes[node_for_adding]["x"] = 0
-        self.nodes[node_for_adding]["y"] = 0
-        self.nodes[node_for_adding]["width"] = 0
-        self.nodes[node_for_adding]["height"] = 0
-        self.nodes[node_for_adding]["index"] = 0
-        self.nodes[node_for_adding]["shift"] = 0
-        self.nodes[node_for_adding]["modifier"] = 0
-        self.nodes[node_for_adding]["change"] = 0
+        if node_for_adding not in self.nodes:
+            properties = {
+                "children": [],
+                "parent": None,
+                "ancestor": None,
+                "leftmost_sibling": None,
+                "left_sibling": None,
+                "thread": None,
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0,
+                "index": 0,
+                "shift": 0,
+                "modifier": 0,
+                "change": 0,
+            }
+        properties.update(**attr)
+        super().add_node(node_for_adding, **properties)
+
+    def add_nodes_from(self, nodes_for_adding, **attr):
+        super().add_nodes_from(nodes_for_adding, **attr)
+        # Initial properties that are needed for the structure graph
+        for node_for_adding in nodes_for_adding:
+            self.add_node(node_for_adding, **attr)
 
     def add_edge(self, source: str, sink: str, **kwargs):
+        self.add_node(source)
+        self.add_node(sink)
         super().add_edge(source, sink, **kwargs)
         # Add properties to both nodes
         self.nodes[source]["children"] += [sink]
@@ -76,7 +84,6 @@ class StructureGraph(DiGraph):
         else:
             # Make the default ancestor the leftmost child of the current node
             default_ancestor = children[0]
-            print(children)
             for child in children:
                 self._first_walk(child, base_distance)
                 default_ancestor = self._apportion(
