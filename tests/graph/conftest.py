@@ -1,5 +1,5 @@
 import pytest
-from depender.graph.graph import StructureGraph
+from depender.graph.structure import StructureGraph
 
 
 @pytest.fixture
@@ -24,9 +24,6 @@ def graph() -> StructureGraph:
         |  6  |           |  7  |     |  8  |
         |     |           |     |     |     |
         +-----+           +-----+     +-----+
-
-    Returns:
-        Graph object
     """
     graph = StructureGraph()
     graph.add_edge("1", "2")
@@ -41,11 +38,8 @@ def graph() -> StructureGraph:
 
 @pytest.fixture
 def graph_with_labels() -> StructureGraph:
-    r"""Create a Graph objects that represents the same graph as the previous fixture
+    """Create a Graph objects that represents the same graph as the previous fixture
     but with labels of different sizes
-
-    Returns:
-        Graph object
     """
     graph = StructureGraph()
     # Create the nodes first in order to set their labels
