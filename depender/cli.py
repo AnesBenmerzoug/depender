@@ -142,10 +142,8 @@ def main(
     # Layout and write to file
     click.echo("Plotting graphs...")
     with spinner():
-        code_graph.layout()
         plotter.plot_dependency_matrix(code_graph)
         plotter.plot_dependency_graph(code_graph)
-        structure_graph.layout()
         plotter.plot_structure_graph(structure_graph)
     click.echo("Done")
 
