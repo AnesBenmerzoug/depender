@@ -1,0 +1,32 @@
+version: 2.1
+
+workflows:
+  version: 2
+  commit-build:
+    - lint
+    - tests-python36
+
+jobs:
+  lint:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          name: install tox
+          command: pip install tox
+      - run:
+          name: run tox -e lint
+          command: tox -e lint
+
+  tests-python36:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run:
+          name: install tox
+          command: pip install tox
+      - run:
+          name: run tox -e py36
+          command: tox -e py36
