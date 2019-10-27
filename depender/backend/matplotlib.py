@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from depender.draw.base import BaseBackend
+from depender.backend.base import BaseBackend
 from depender.graph import DependencyGraph, StructureGraph
 from matplotlib import cm
 from matplotlib.collections import LineCollection
