@@ -5,7 +5,7 @@ from depender.graph.dependency import DependencyGraph
 from depender.graph.structure import StructureGraph
 
 
-class BaseGraphPlot(ABC):
+class BaseBackend(ABC):
     def __init__(
         self,
         output_dir: str,

@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from depender.draw.base import BaseGraphPlot
+from depender.draw.base import BaseBackend
 from depender.graph import DependencyGraph, StructureGraph
 from matplotlib import cm
 from matplotlib.collections import LineCollection
 from matplotlib.patches import FancyArrowPatch
 
 
-class MatplotlibGraphPlot(BaseGraphPlot):
+class MatplotlibBackend(BaseBackend):
     def plot_dependency_matrix(self, graph: DependencyGraph, **kwargs):
         graph.layout(matrix=True)
         node_names = graph.nodes()
