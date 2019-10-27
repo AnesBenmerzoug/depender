@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List, Union
 
-from depender.graph.graph import StructureGraph
-from depender.utilities.parsing import traverse_directory
+from depender.graph import StructureGraph
+from depender.parse.utilities import traverse_directory
 
 
 class StructureParser:
@@ -26,7 +26,7 @@ class StructureParser:
             package_path, excluded_directories, depth=depth, followlinks=follow_links
         ):
 
-            if not self.graph.node_exists(str(root)):
+            if not self.graph.has_node(str(root)):
                 self.graph.add_node(str(root), label=root.name, type="root")
 
             for i, element in enumerate(dirs + files):

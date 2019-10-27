@@ -5,10 +5,9 @@ from typing import List
 
 import click
 from click_spinner import spinner  # type: ignore
-from depender.parsers.code import CodeParser
-from depender.parsers.structure import StructureParser
-from depender.render.dependency import DependencyRenderer
-from depender.render.structure import StructureRenderer
+from depender.backend import get_backend
+from depender.parse.code import CodeParser
+from depender.parse.structure import StructureParser
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], ignore_unknown_options=True)
 
@@ -36,6 +35,13 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], ignore_unknown_optio
     show_default=True,
     help="Output format, if specified the graph will be rendered to a file"
     " with the given format",
+)
+@click.option(
+    "--backend",
+    type=click.Choice(["graphviz", "matplotlib"]),
+    default="graphviz",
+    show_default=True,
+    help="Backend used for plotting",
 )
 @click.option(
     "--dims",
@@ -74,6 +80,7 @@ def main(
     excluded_dirs: List[str],
     output_dir: str,
     format: str,
+    backend: str,
     image_dimensions: str,
     include_external: bool,
     no_follow_links: bool,
@@ -119,18 +126,12 @@ def main(
     # Instantiate the parsers
     code_parser = CodeParser()
     structure_parser = StructureParser()
-    # Instantiate the Graph renderers
-    structure_renderer = StructureRenderer(
+    # Instantiate the backend
+    backend = get_backend("backend")(
         output_dir=output_dir,
-        output_format=format,
+        format=format,
         figure_dimensions=(image_width, image_height),
     )
-    dependency_renderer = DependencyRenderer(
-        output_dir=output_dir,
-        output_format=format,
-        figure_dimensions=(image_width, image_height),
-    )
-    # Parse the package
     click.echo("Parsing package...")
     with spinner():
         code_graph = code_parser.parse_project(
@@ -139,7 +140,6 @@ def main(
             excluded_directories=excluded_dirs,
             include_external=include_external,
             follow_links=not no_follow_links,
-            depth=depth,
         )
         structure_graph = structure_parser.parse_project(
             package_path=package_path,
@@ -147,13 +147,12 @@ def main(
             follow_links=not no_follow_links,
             depth=depth,
         )
-
     # Layout and write to file
     click.echo("Plotting graphs...")
     with spinner():
-        dependency_renderer.render_matrix(code_graph)
-        dependency_renderer.render_graph(code_graph)
-        structure_renderer.render_graph(structure_graph)
+        backend.plot_dependency_matrix(code_graph)
+        backend.plot_dependency_graph(code_graph)
+        backend.plot_structure_graph(structure_graph)
     click.echo("Done")
 
 

@@ -1,3 +1,2 @@
-include depender/templates/*.html
 include requirements.txt
 global-exclude *.py[cod]

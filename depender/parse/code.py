@@ -4,13 +4,12 @@ import importlib.util
 from pathlib import Path
 from typing import List, Union
 
-from depender.graph.graph import Graph
-from depender.utilities.parsing import find_all_package_modules
+from depender.graph.dependency import DependencyGraph
 
 
 class CodeParser:
     def __init__(self) -> None:
-        self.graph = Graph()
+        self.graph = DependencyGraph()
 
     def parse_project(
         self,
@@ -20,10 +19,9 @@ class CodeParser:
         include_external: bool = True,
         parse_importlib: bool = True,
         follow_links: bool = True,
-        depth: int = 5,
-    ) -> Graph:
+    ) -> DependencyGraph:
         if isinstance(package_path, str):
-            package_path = Path(package_path)
+            package_path = Path(package_path).resolve()
         # Convert the excluded dirs to Path instances
         excluded_directories = list(
             map(lambda x: package_path.joinpath(x).resolve(), excluded_directories)
@@ -35,12 +33,8 @@ class CodeParser:
             file_list = [(package_path, package_name)]
         else:
             # Traverse the whole directory, up to the given depth, to find all python modules and files
-            file_list = find_all_package_modules(
-                package_path,
-                excluded_directories,
-                self.graph,
-                depth=depth,
-                followlinks=follow_links,
+            file_list = self.find_all_package_modules(
+                package_path, excluded_directories, self.graph
             )
         # Finally traverse only the files that were found
         for filepath, module_dot_path in file_list:
@@ -52,6 +46,23 @@ class CodeParser:
                 parse_importlib,
             )
         return self.graph
+
+    def find_all_package_modules(
+        self,
+        package_path: Path,
+        excluded_directories: List[Path],
+        graph: DependencyGraph,
+    ):
+        file_list = list()
+        for file in package_path.rglob("*.py"):
+            # Skip  __init__.py files
+            if "__init__.py" in file.name:
+                continue
+            relative_path = file.relative_to(package_path.parent).with_suffix("")
+            module_dot_path = ".".join(relative_path.parts)
+            file_list.append((file, module_dot_path))
+            graph.add_node(module_dot_path, label=module_dot_path)
+        return file_list
 
     def parse_file(
         self,
@@ -141,7 +152,7 @@ class CodeParser:
             imported_module = importlib.util.resolve_name(alias.name, package_name)
 
             # Check if the imported module is in the list of this package's modules
-            if self.graph.node_exists(imported_module):
+            if self.graph.has_node(imported_module):
                 self.graph.add_node(imported_module, label=imported_module)
                 self.graph.add_edge(importing_module, imported_module)
 
@@ -163,13 +174,13 @@ class CodeParser:
         )  # type: ignore
 
         # Check if the first part of the from ... import ... is a module
-        if self.graph.node_exists(imported_from_module):
+        if self.graph.has_node(imported_from_module):
             self.graph.add_node(imported_from_module, label=imported_from_module)
             self.graph.add_edge(importing_module, imported_from_module)
         else:
             for imported_module in import_node.names:
                 module_dot_path = ".".join([imported_from_module, imported_module.name])
-                if self.graph.node_exists(module_dot_path):
+                if self.graph.has_node(module_dot_path):
                     self.graph.add_node(module_dot_path, label=module_dot_path)
                     self.graph.add_edge(importing_module, module_dot_path)
             if include_external:
@@ -187,7 +198,7 @@ class CodeParser:
         imported_module = importlib.util.resolve_name(import_node, package)
 
         # Check if the imported module is in the list of this package's modules
-        if self.graph.node_exists(imported_module):
+        if self.graph.has_node(imported_module):
             self.graph.add_node(imported_module, label=imported_module)
             self.graph.add_edge(importing_module, imported_module)
 
