@@ -9,12 +9,8 @@ from matplotlib.colors import to_hex
 
 
 class GraphivizBackend(BaseBackend):
-    def plot_dependency_matrix(self, graph: DependencyGraph, **kwargs):
-        graph.layout(matrix=True)
-        table = self._create_dependency_table(graph)
-        dot = graphviz.Graph(name="Dependency Matrix")
-        dot.graph_attr["dpi"] = str(self.dpi)
-        dot.node("test", shape="plaintext", label=table)
+    def plot(self, *args, **kwargs):
+        dot = args[0]
         dot_str = graphviz.pipe(engine="dot", format="png", data=dot.source.encode())
         # treat the dot output string as an image file
         sio = BytesIO()
@@ -34,6 +30,24 @@ class GraphivizBackend(BaseBackend):
         fig.tight_layout()
         plt.show()
 
+    def save_to_file(self, *args, **kwargs):
+        dot = args[0]
+        filename = kwargs.pop("filename", "graph")
+        dot.render(
+            engine="dot", format=self.format, filepath=self.output_dir / filename
+        )
+
+    def plot_dependency_matrix(self, graph: DependencyGraph, **kwargs):
+        graph.layout(matrix=True)
+        table = self._create_dependency_table(graph)
+        dot = graphviz.Graph(name="Dependency Matrix")
+        dot.graph_attr["dpi"] = str(self.dpi)
+        dot.node("test", shape="plaintext", label=table)
+        if self.format is None:
+            self.plot(dot)
+        else:
+            self.save_to_file(dot, filename="dependency_matrix")
+
     def plot_dependency_graph(self, graph: DependencyGraph, **kwargs):
         graph.layout(graph=True)
         dot = graphviz.Digraph(name="Dependency Graph")
@@ -50,24 +64,10 @@ class GraphivizBackend(BaseBackend):
             dot.node(node, fillcolor=color, style="filled")
         for edge in graph.edges:
             dot.edge(*edge)
-        dot_str = graphviz.pipe(engine="dot", format="png", data=dot.source.encode())
-        # treat the dot output string as an image file
-        sio = BytesIO()
-        sio.write(dot_str)
-        sio.seek(0)
-        fig, ax = plt.subplots(
-            figsize=(
-                self.figure_dimensions[0] / self.dpi,
-                self.figure_dimensions[1] / self.dpi,
-            ),
-            dpi=self.dpi,
-        )
-        ax.axis("off")
-        img = mpimg.imread(sio)
-        # plot the image
-        ax.imshow(img, aspect="equal")
-        fig.tight_layout()
-        plt.show()
+        if self.format is None:
+            self.plot(dot)
+        else:
+            self.save_to_file(dot, filename="dependency_graph")
 
     def plot_structure_graph(self, graph: StructureGraph, **kwargs):
         dot = graphviz.Digraph(name="Structure Graph")
@@ -91,24 +91,10 @@ class GraphivizBackend(BaseBackend):
             )
         for edge in graph.edges:
             dot.edge(*edge)
-        dot_str = graphviz.pipe(engine="dot", format="png", data=dot.source.encode())
-        # treat the dot output string as an image file
-        sio = BytesIO()
-        sio.write(dot_str)
-        sio.seek(0)
-        fig, ax = plt.subplots(
-            figsize=(
-                self.figure_dimensions[0] / self.dpi,
-                self.figure_dimensions[1] / self.dpi,
-            ),
-            dpi=self.dpi,
-        )
-        ax.axis("off")
-        img = mpimg.imread(sio)
-        # plot the image
-        ax.imshow(img, aspect="equal")
-        fig.tight_layout()
-        plt.show()
+        if self.format is None:
+            self.plot(dot)
+        else:
+            self.save_to_file(dot, filename="structure_graph")
 
     def _create_dependency_table(self, graph):
         node_names = list(graph.nodes)

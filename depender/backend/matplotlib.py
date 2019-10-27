@@ -8,6 +8,18 @@ from matplotlib.patches import FancyArrowPatch
 
 
 class MatplotlibBackend(BaseBackend):
+    def plot(self, *args, **kwargs):
+        fig = args[0]
+        fig.tight_layout()
+        plt.show()
+
+    def save_to_file(self, *args, **kwargs):
+        fig = args[0]
+        filename = kwargs.pop("filename", "graph")
+        fig.tight_layout()
+        output_file = (self.output_dir / filename).with_suffix(self.format)
+        fig.savefig(output_file)
+
     def plot_dependency_matrix(self, graph: DependencyGraph, **kwargs):
         graph.layout(matrix=True)
         node_names = graph.nodes()
@@ -51,9 +63,10 @@ class MatplotlibBackend(BaseBackend):
             ha="left",
             rotation_mode="anchor",
         )
-        # Adjust the figure to show everything
-        fig.tight_layout()
-        plt.show()
+        if self.format is None:
+            self.plot(fig)
+        else:
+            self.save_to_file(fig, filename="dependency_matrix")
 
     def plot_dependency_graph(self, graph: DependencyGraph, **kwargs):
         graph.layout(graph=True)
@@ -67,9 +80,10 @@ class MatplotlibBackend(BaseBackend):
         ax.axis("off")
         self._plot_dependency_nodes(graph)
         self._plot_dependency_edges(graph)
-        # Adjust the figure to show everything
-        fig.tight_layout()
-        plt.show()
+        if self.format is None:
+            self.plot(fig)
+        else:
+            self.save_to_file(fig, filename="dependency_graph")
 
     def plot_structure_graph(self, graph: StructureGraph, **kwargs):
         fig, ax = plt.subplots(
@@ -82,7 +96,10 @@ class MatplotlibBackend(BaseBackend):
         ax.axis("off")
         self._plot_structure_nodes(graph)
         self._plot_structure_edges(graph)
-        plt.show()
+        if self.format is None:
+            self.plot(fig)
+        else:
+            self.save_to_file(fig, filename="structure_graph")
 
     @staticmethod
     def _plot_dependency_nodes(graph: DependencyGraph, ax=None):
