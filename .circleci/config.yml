@@ -15,7 +15,7 @@ jobs:
     - checkout
     - run:
         name: install tox
-        command: pip install tox
+        command: pip install tox --user
     - run:
         name: run tox -e lint
         command: tox -e lint
@@ -27,7 +27,7 @@ jobs:
     - checkout
     - run:
         name: install tox
-        command: pip install tox
+        command: pip install tox --user
     - run:
         name: run tox -e py36
         command: tox -e py36
