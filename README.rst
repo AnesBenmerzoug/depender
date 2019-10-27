@@ -2,11 +2,10 @@
 Depender
 ########
 
-|Version| |License|
+|Build| |Version| |License|
 
 Depender is a Python package that is used to determine and plot
 the dependencies of a given Python package given its name or its path.
-
 
 .. image:: https://raw.githubusercontent.com/AnesBenmerzoug/depender/master/docs/images/dependency_graph.png
     :align: center
@@ -98,6 +97,9 @@ License
 *******
 
 Depender is licensed under the Apache Software License version 2.0.
+
+.. |Build| image:: https://circleci.com/gh/AnesBenmerzoug/depender/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/AnesBenmerzoug/depender/tree/master
 
 
 .. |Version| image:: https://img.shields.io/pypi/v/depender.svg
