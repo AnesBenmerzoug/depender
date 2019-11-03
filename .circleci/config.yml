@@ -5,7 +5,10 @@ workflows:
   commit-build:
     jobs:
     - lint
+    - tests-python35
     - tests-python36
+    - tests-python37
+    - tests-python38
 
 jobs:
   lint:
