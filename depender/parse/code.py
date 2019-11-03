@@ -2,7 +2,7 @@ import ast
 import importlib
 import importlib.util
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 from depender.graph.dependency import DependencyGraph
 
@@ -15,7 +15,7 @@ class CodeParser:
         self,
         package_path: Union[str, Path],
         is_module: bool,
-        excluded_directories: List[Union[str, Path]],
+        excluded_directories: Optional[List[Union[str, Path]]] = None,
         include_external: bool = True,
         parse_importlib: bool = True,
         follow_links: bool = True,
@@ -23,9 +23,12 @@ class CodeParser:
         if isinstance(package_path, str):
             package_path = Path(package_path).resolve()
         # Convert the excluded dirs to Path instances
-        excluded_directories = list(
-            map(lambda x: package_path.joinpath(x).resolve(), excluded_directories)
-        )
+        if excluded_directories is None:
+            excluded_directories = []
+        else:
+            excluded_directories = list(
+                map(lambda x: package_path.joinpath(x).resolve(), excluded_directories)
+            )
 
         package_name = package_path.stem
 
