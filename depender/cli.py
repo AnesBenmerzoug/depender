@@ -127,7 +127,7 @@ def main(
     code_parser = CodeParser()
     structure_parser = StructureParser()
     # Instantiate the backend
-    backend = get_backend("backend")(
+    backend = get_backend(backend)(
         output_dir=output_dir,
         format=format,
         figure_dimensions=(image_width, image_height),
