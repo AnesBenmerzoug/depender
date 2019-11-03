@@ -1,0 +1,11 @@
+def test_parsing_package_code(package, code_parser):
+    graph = code_parser.parse_project(package, is_module=False)
+    assert graph.has_node("package.subpackage1.A")
+    assert graph.has_node("package.subpackage1.B")
+    assert graph.has_node("package.subpackage2.C")
+    assert graph.has_node("package.subpackage2.D")
+    assert graph.has_edge("package.subpackage1.A", "package.subpackage2.C")
+    assert graph.has_edge("package.subpackage1.A", "package.subpackage2.D")
+    assert graph.has_edge("package.subpackage2.C", "package.subpackage1.B")
+    assert graph.has_edge("package.subpackage2.D", "package.subpackage2.C")
+    assert graph.has_edge("package.subpackage2.D", "package.subpackage1.B")
