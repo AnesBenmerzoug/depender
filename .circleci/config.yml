@@ -5,10 +5,8 @@ workflows:
   commit-build:
     jobs:
     - lint
-    - tests-python35
     - tests-python36
     - tests-python37
-    - tests-python38
 
 jobs:
   lint:
@@ -22,18 +20,6 @@ jobs:
     - run:
         name: run tox -e lint
         command: tox -e lint
-
-  tests-python35:
-    docker:
-      - image: circleci/python:3.5
-    steps:
-      - checkout
-      - run:
-          name: install tox
-          command: pip install tox --user
-      - run:
-          name: run tox -e py35
-          command: tox -e py35
 
   tests-python36:
     docker:
