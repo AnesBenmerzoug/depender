@@ -58,3 +58,15 @@ jobs:
       - run:
           name: run tox -e py37
           command: tox -e py37
+
+  tests-python38:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: install tox
+          command: pip install tox --user
+      - run:
+          name: run tox -e py38
+          command: tox -e py38
