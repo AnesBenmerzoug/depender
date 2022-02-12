@@ -10,4 +10,5 @@ excluded_paths = []
 if len(sys.argv) > 3:   
     excluded_paths = [Path(path).resolve() for path in sys.argv[3:]]
 
+print(excluded_paths)
 parse_dependencies(Path(sys.argv[1]), to_module, excluded_paths)

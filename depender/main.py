@@ -44,18 +44,18 @@ def parse_dependencies(package_path: Path, to_module: Optional[str] = None, excl
         package_path=package_path,
         is_module=is_module,
         excluded_directories=excluded_paths,
-        include_external=to_module is None,
+        include_external=True,
         follow_links=True,
     )
-    for node in code_graph.nodes:
-        print(node)
+    # for node in code_graph.nodes:
+    #     print(node)
 
-    print('-' * 100)
+    # print('-' * 100)
 
     # for edge in code_graph.edges:
     #     print(edge)
 
-    # print('-' * 100)
+    print('-' * 100)
     print(f'Number of modules: {len(code_graph.nodes)}')
     if to_module:
         print(f'Number of nodes directly depending on {to_module}: {len(list(code_graph.neighbors(to_module)))}')
