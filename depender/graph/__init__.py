@@ -1,2 +1,2 @@
-from .dependency import DependencyGraph  # noqa
+from .dependency import DirectionalDependencyGraph, NetworkDependencyGraph  # noqa
 from .structure import StructureGraph  # noqa

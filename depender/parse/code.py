@@ -1,25 +1,29 @@
+from __future__ import annotations
 import ast
 import importlib
 import importlib.util
 from pathlib import Path
 from typing import List, Union
 
-from depender.graph.dependency import DependencyGraph
+from depender.graph.dependency import DirectionalDependencyGraph, NetworkDependencyGraph
 
 
 class CodeParser:
-    def __init__(self) -> None:
-        self.graph = DependencyGraph()
+    def __init__(self, directed: bool = True) -> None:
+        if directed:
+            self.graph = DirectionalDependencyGraph()
+        else:
+            self.graph = NetworkDependencyGraph()
 
     def parse_project(
         self,
         package_path: Union[str, Path],
         is_module: bool,
-        excluded_directories: List[Union[str, Path]],
+        excluded_directories: List[Path],
         include_external: bool = True,
         parse_importlib: bool = True,
         follow_links: bool = True,
-    ) -> DependencyGraph:
+    ) -> DirectionalDependencyGraph | NetworkDependencyGraph:
         if isinstance(package_path, str):
             package_path = Path(package_path).resolve()
         # Convert the excluded dirs to Path instances
@@ -51,12 +55,21 @@ class CodeParser:
         self,
         package_path: Path,
         excluded_directories: List[Path],
-        graph: DependencyGraph,
+        graph: DirectionalDependencyGraph | NetworkDependencyGraph,
     ):
         file_list = list()
         for file in package_path.rglob("*.py"):
             # Skip  __init__.py files
             if "__init__.py" in file.name:
+                continue
+            is_excluded = False
+            for excluded_directory in excluded_directories:
+                print(file.resolve(), excluded_directory, str(file.absolute()).startswith(str(excluded_directory)))
+                if str(file.resolve()).startswith(str(excluded_directory)):
+                    is_excluded = True
+                    break
+
+            if is_excluded:
                 continue
             relative_path = file.relative_to(package_path.parent).with_suffix("")
             module_dot_path = ".".join(relative_path.parts)

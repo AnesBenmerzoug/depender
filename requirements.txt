@@ -3,4 +3,3 @@ click-spinner>=0.1.0
 matplotlib>=3.0.0
 networkx[scipy]>=2.3
 numpy>=1.15.4
-graphviz>=0.13
