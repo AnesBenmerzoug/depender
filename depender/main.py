@@ -6,6 +6,7 @@ from typing import Optional
 from depender.backend import get_backend
 from depender.parse.code import CodeParser
 from depender.parse.structure import StructureParser
+import networkx as nx
 
 
 def parse_structure(package_path: Path, excluded_dirs: list[Path | str]):
@@ -47,13 +48,13 @@ def parse_dependencies(package_path: Path, to_module: Optional[str] = None, excl
         include_external=True,
         follow_links=True,
     )
-    # for node in code_graph.nodes:
-    #     print(node)
+    for node in code_graph.nodes:
+        print(node)
 
-    # print('-' * 100)
+    print('-' * 100)
 
-    # for edge in code_graph.edges:
-    #     print(edge)
+    for edge in code_graph.edges:
+        print(edge)
 
     print('-' * 100)
     print(f'Number of modules: {len(code_graph.nodes)}')
@@ -62,3 +63,10 @@ def parse_dependencies(package_path: Path, to_module: Optional[str] = None, excl
 
         for neighbor in code_graph.neighbors(to_module):
             print(neighbor)
+
+        nodes = nx.shortest_path(code_graph, to_module).keys()
+        nodes = [node for node in nodes if '.' in node]
+        print('-' * 100)
+        print(f'Number of nodes indirectly depending on {to_module} : {len(nodes)}')
+        for node in nodes:
+            print(node)
